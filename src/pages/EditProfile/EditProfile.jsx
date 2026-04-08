@@ -209,29 +209,29 @@ const EditProfile = () => {
       newErrors.website_url = "Website URL must start with http:// or https://";
     }
 
-    if (
-      formData.social.twitter_url &&
-      !formData.social.twitter_url.startsWith("https://twitter_url.com/")
-    ) {
-      newErrors["social.twitter_url"] =
-        "Twitter URL must be a valid Twitter profile URL";
-    }
+    // if (
+    //   formData.social.twitter_url &&
+    //   !formData.social.twitter_url.startsWith("https://twitter_url.com/")
+    // ) {
+    //   newErrors["social.twitter_url"] =
+    //     "Twitter URL must be a valid Twitter profile URL";
+    // }
 
-    if (
-      formData.social.github_url &&
-      !formData.social.github_url.startsWith("https://github")
-    ) {
-      newErrors["social.github_url"] =
-        "GitHub URL must be a valid GitHub profile URL";
-    }
+    // if (
+    //   formData.social.github_url &&
+    //   !formData.social.github_url.startsWith("https://github")
+    // ) {
+    //   newErrors["social.github_url"] =
+    //     "GitHub URL must be a valid GitHub profile URL";
+    // }
 
-    if (
-      formData.social.linkedin_url &&
-      !formData.social.linkedin_url.startsWith("https://linkedin_url.com/")
-    ) {
-      newErrors["social.linkedin_url"] =
-        "LinkedIn URL must be a valid LinkedIn profile URL";
-    }
+    // if (
+    //   formData.social.linkedin_url &&
+    //   !formData.social.linkedin_url.startsWith("https://linkedin_url.com/")
+    // ) {
+    //   newErrors["social.linkedin_url"] =
+    //     "LinkedIn URL must be a valid LinkedIn profile URL";
+    // }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -250,12 +250,11 @@ const EditProfile = () => {
       // Tạo FormData để gửi cả file và text data
       const formDataToSend = new FormData();
 
-      // Thêm files nếu có
-      if (imageFiles.avatar) {
+      if (imageFiles.avatar instanceof File) {
         formDataToSend.append("avatar", imageFiles.avatar);
       }
 
-      if (imageFiles.cover_image) {
+      if (imageFiles.cover_image instanceof File) {
         formDataToSend.append("cover_image", imageFiles.cover_image);
       }
 
