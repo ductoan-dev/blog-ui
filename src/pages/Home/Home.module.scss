@@ -2,45 +2,143 @@
 @use "../../styles/mixins" as *;
 
 .home {
-    // No specific styles needed, using global container
+    padding: $spacing-6 0;
+    background: #f0f2f5;
+    min-height: 100vh;
+}
+
+.feedLayout {
+    grid-template-columns: 1fr;
+    gap: $spacing-6;
+    align-items: start;
+
+   
+}
+
+.leftSidebar {
+    display: none;
+
+    @include desktop-up {
+        display: flex;
+        flex-direction: column;
+        gap: $spacing-4;
+        position: fixed;
+        left: 0;
+        top: 80px;
+        bottom: 0;
+        width: 280px;
+        padding: $spacing-3 $spacing-2;
+        overflow-y: auto;
+        background: #f0f2f5;
+        z-index: 5;
+
+        &::-webkit-scrollbar {
+            width: 8px;
+        }
+        &::-webkit-scrollbar-thumb {
+            background: transparent;
+            border-radius: 4px;
+        }
+        &:hover::-webkit-scrollbar-thumb {
+            background: $gray-300;
+        }
+    }
+}
+
+.feedMain {
+    width: 100%;
+    max-width: 720px;
+    justify-self: center;
+    min-width: 0;
+
+    @include desktop-up {
+        grid-column: 2;
+    }
+}
+
+// .feedSidebar {
+//     display: none;
+
+//     @include desktop-up {
+//         display: flex;
+//         flex-direction: column;
+//         gap: $spacing-4;
+//         position: sticky;
+//         top: 80px;
+//     }
+// }
+
+// .sidebarSection {
+//     background: $bg-primary;
+//     border: 1px solid $border-light;
+//     border-radius: $radius-lg;
+//     padding: $spacing-4;
+//     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+// }
+
+.sidebarTitle {
+    font-size: $text-base;
+    font-weight: $font-semibold;
+    color: $gray-900;
+    margin: 0 0 $spacing-3;
+}
+
+.sidebarText {
+    font-size: $text-sm;
+    color: $gray-600;
+    margin: 0 0 $spacing-3;
+    line-height: 1.5;
+}
+
+.sidebarLink {
+    display: inline-block;
+    margin-top: $spacing-3;
+    font-size: $text-sm;
+    color: $primary-600;
+    text-decoration: none;
+    font-weight: $font-medium;
+
+    &:hover {
+        text-decoration: underline;
+    }
 }
 
 // Hero Section
-.hero {
-    background: linear-gradient(135deg, $primary-50 0%, $primary-100 100%);
-    min-height: 80vh;
-    display: flex;
-    align-items: center;
-    position: relative;
-    overflow: hidden;
-    margin-top: -$spacing-12;
-    margin-bottom: $spacing-20;
+// .hero {
+//     background: linear-gradient(135deg, $primary-50 0%, $primary-100 100%);
+//     min-height: 80vh;
+//     display: flex;
+//     align-items: center;
+//     position: relative;
+//     overflow: hidden;
+//     margin-top: -$spacing-12;
+//     margin-bottom: $spacing-20;
 
-    @include tablet-up {
-        margin-top: -$spacing-16;
-        margin-bottom: $spacing-24;
-    }
+//     @include tablet-up {
+//         margin-top: -$spacing-16;
+//         margin-bottom: $spacing-24;
+//     }
 
-    @include desktop-up {
-        margin-top: -$spacing-20;
-    }
+//     @include desktop-up {
+//         margin-top: -$spacing-20;
+//     }
 
-    &::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="%23e5e7eb" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
-        opacity: 0.3;
-    }
+//     &::before {
+//         content: "";
+//         position: absolute;
+//         top: 0;
+//         left: 0;
+//         right: 0;
+//         bottom: 0;
+//         background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="%23e5e7eb" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+//         opacity: 0.3;
+//     }
 
-    @include mobile-only {
-        min-height: 70vh;
-        padding: $spacing-8 0;
-    }
-}
+//     @include mobile-only {
+//         min-height: 70vh;
+//         padding: $spacing-8 0;
+//     }
+// }
 
 .heroContent {
     display: grid;
@@ -280,6 +378,33 @@
 
     @include mobile-only {
         margin-bottom: $spacing-6;
+    }
+}
+
+.demoBar {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: $spacing-4;
+}
+
+.demoBtn {
+    padding: $spacing-2 $spacing-4;
+    border: none;
+    border-radius: $radius-full;
+    background: $primary-600;
+    color: #fff;
+    font-weight: $font-semibold;
+    font-size: $text-sm;
+    cursor: pointer;
+    transition: background-color $transition-fast;
+
+    &:hover:not(:disabled) {
+        background: $primary-700;
+    }
+
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
     }
 }
 

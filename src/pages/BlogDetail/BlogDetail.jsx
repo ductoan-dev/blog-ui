@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import {
   BlogContent,
   AuthorInfo,
-  RelatedPosts,
+  // RelatedPosts,
   CommentSection,
   Loading,
 } from "../../components";
@@ -18,8 +18,8 @@ const BlogDetail = () => {
 
   const [loading, setLoading] = useState(true);
   const [post, setPost] = useState(null);
-  const [relatedPosts, setRelatedPosts] = useState([]);
-  const [relatedLoading, setRelatedLoading] = useState(false);
+  // const [relatedPosts, setRelatedPosts] = useState([]);
+  // const [relatedLoading, setRelatedLoading] = useState(false);
   const [comments, setComments] = useState([]);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
@@ -40,7 +40,7 @@ const BlogDetail = () => {
       }
       console.log(post, "hihi");
     })();
-  }, [post]);
+  }, [post]); 
   useEffect(() => {
     const loadPost = async () => {
       setLoading(true);
@@ -101,21 +101,21 @@ const BlogDetail = () => {
     })();
   }, [post?.user?.id]);
 
-  useEffect(() => {
-    if (!post?.id) return;
+  // useEffect(() => {
+  //   if (!post?.id) return;
 
-    (async () => {
-      try {
-        setRelatedLoading(true);
-        const postRelates = await postService.getRelatedPosts(post?.id);
-        setRelatedPosts(postRelates);
-      } catch (error) {
-        console.error("Failed to load related posts:", error);
-      } finally {
-        setRelatedLoading(false);
-      }
-    })();
-  }, [post?.id]);
+  //   (async () => {
+  //     try {
+  //       setRelatedLoading(true);
+  //       const postRelates = await postService.getRelatedPosts(post?.id);
+  //       setRelatedPosts(postRelates);
+  //     } catch (error) {
+  //       console.error("Failed to load related posts:", error);
+  //     } finally {
+  //       setRelatedLoading(false);
+  //     }
+  //   })();
+  // }, [post?.id]);
 
   const handleAddComment = async (content) => {
     const data = {
@@ -465,13 +465,13 @@ const BlogDetail = () => {
       </div>
 
       {/* Related Posts */}
-      <div className={styles.contentSection}>
+      {/* <div className={styles.contentSection}>
         <RelatedPosts
           posts={relatedPosts}
           loading={relatedLoading}
           title="Related Articles"
         />
-      </div>
+      </div> */}
 
       {/* Comments */}
       <div className={styles.contentSection}>

@@ -43,7 +43,11 @@ const FeaturedPosts = ({
       </section>
     );
   }
-  const sortedPosts = [...posts].sort((a, b) => b.likes_count - a.likes_count);
+  const sortedPosts = [...posts].sort((a, b) => {
+    const aTime = new Date(a.published_at || a.createdAt || 0).getTime();
+    const bTime = new Date(b.published_at || b.createdAt || 0).getTime();
+    return bTime - aTime;
+  });
   const handleLike = async (postId) => {
     try {
       return await postService.toggleLikePost(postId);

@@ -26,6 +26,9 @@ export { default as TopicList } from "./TopicList/TopicList";
 export { default as FeaturedPosts } from "./FeaturedPosts/FeaturedPosts";
 export { default as PostList } from "./PostList/PostList";
 export { default as TopicHeader } from "./TopicHeader/TopicHeader";
+export { default as UserCard } from "./UserCard/UserCard";
+export { default as FacebookSidebar } from "./FacebookSidebar/FacebookSidebar";
+export { default as PostModal } from "./PostModal/PostModal";
 
 // Routing
 export { default as AppRoutes } from "./AppRoutes";
@@ -34,6 +37,6 @@ export { default as ScrollToTop } from "./ScrollToTop/ScrollToTop";
 // Blog Detail Components
 export { default as BlogContent } from "./BlogContent/BlogContent";
 export { default as AuthorInfo } from "./AuthorInfo/AuthorInfo";
-export { default as RelatedPosts } from "./RelatedPosts/RelatedPosts";
+// export { default as RelatedPosts } from "./RelatedPosts/RelatedPosts";
 export { default as CommentSection } from "./CommentSection/CommentSection";
 export { default as CommentItem } from "./CommentItem/CommentItem";

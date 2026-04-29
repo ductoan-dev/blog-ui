@@ -2,7 +2,13 @@ import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
 import Badge from "../Badge/Badge";
 import FallbackImage from "../FallbackImage/FallbackImage";
+import isHttps from "../../utils/isHttps";
 import styles from "./BlogContent.module.scss";
+
+const resolveImage = (src) => {
+  if (!src) return src;
+  return isHttps(src) ? src : `${import.meta.env.VITE_BASE_URL}/${src}`;
+};
 
 const BlogContent = ({
   title,
@@ -70,7 +76,7 @@ const BlogContent = ({
       {displayImage && (
         <div className={styles.imageContainer}>
           <FallbackImage
-            src={displayImage}
+            src={resolveImage(displayImage)}
             alt={title}
             className={styles.featuredImage}
           />
@@ -92,7 +98,7 @@ const BlogContent = ({
           <div className={styles.authorSection}>
             {authorAvatar && (
               <FallbackImage
-                src={authorAvatar}
+                src={resolveImage(authorAvatar)}
                 alt={authorName}
                 className={styles.authorAvatar}
               />

@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 import Navigation from "../Navigation/Navigation";
 import Button from "../Button/Button";
@@ -18,7 +18,23 @@ const Header = () => {
   const dropdownRef = useRef(null);
   const notificationRef = useRef(null);
 
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
+
   const { currentUser } = useUser();
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    const q = searchQuery.trim();
+    if (!q) return;
+    navigate(`/search?q=${encodeURIComponent(q)}`);
+    setIsMobileMenuOpen(false);
+  };
+
+  const handleSearchClear = () => {
+    setSearchQuery("");
+  };
 
   useEffect(() => {
     if (currentUser) {
@@ -70,7 +86,7 @@ const Header = () => {
   // const toggleAuth = () => {
   //     setIsAuthenticated(!isAuthenticated);
   //     setIsDropdownOpen(false);
-  // };
+  // }; 
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -148,6 +164,53 @@ const Header = () => {
               </div>
             </Link>
           </div>
+          {/* Search */}
+          <form
+            className={styles.search}
+            onSubmit={handleSearchSubmit}
+            role="search"
+          >
+            <svg
+              className={styles.searchIcon}
+              width="18"
+              height="18"
+              viewBox="0 0 16 16"
+              fill="none"
+              aria-hidden="true"
+            >
+              <circle
+                cx="7"
+                cy="7"
+                r="5"
+                stroke="currentColor"
+                strokeWidth="1.5"
+              />
+              <path
+                d="M11 11L14 14"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+              />
+            </svg>
+            <input
+              type="text"
+              className={styles.searchInput}
+              placeholder="Tìm kiếm trên BlogUI"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              aria-label="Search"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                className={styles.searchClear}
+                onClick={handleSearchClear}
+                aria-label="Clear search"
+              >
+                ×
+              </button>
+            )}
+          </form>
 
           {/* Desktop Navigation */}
           <div className={styles.nav}>
@@ -395,7 +458,7 @@ const Header = () => {
                 </div>
                 <nav className={styles.mobileUserNav}>
                   <Link
-                    to={user?.username ? `/profile/${user.username}` : "#"}
+                    to={`/profile/${user?.username || "john-doe"}`}
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Profile

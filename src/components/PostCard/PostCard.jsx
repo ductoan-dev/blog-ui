@@ -4,7 +4,13 @@ import { Link } from "react-router-dom";
 import Card from "../Card/Card";
 import Badge from "../Badge/Badge";
 import FallbackImage from "../FallbackImage/FallbackImage";
+import isHttps from "../../utils/isHttps";
 import styles from "./PostCard.module.scss";
+
+const resolveImage = (src) => {
+  if (!src) return src;
+  return isHttps(src) ? src : `${import.meta.env.VITE_BASE_URL}/${src}`;
+};
 
 const PostCard = ({
   title,
@@ -16,6 +22,7 @@ const PostCard = ({
   slug,
   loading = false,
   compact = false,
+  variant = "card",
   className,
   // New interaction props
   description,
@@ -91,6 +98,24 @@ const PostCard = ({
     }
   };
 
+  const handleShare = async () => {
+    const url = `${window.location.origin}/blog/${slug}`;
+    const shareData = {
+      title: title || "Blog post",
+      text: description || "",
+      url,
+    };
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else if (navigator.clipboard) {
+        await navigator.clipboard.writeText(url);
+      }
+    } catch (error) {
+      console.error("Share failed:", error);
+    }
+  };
+
   if (loading) {
     return (
       <Card
@@ -110,6 +135,173 @@ const PostCard = ({
     );
   }
 
+  if (variant === "feed") {
+    const authorName =
+      user_id?.fullname ||
+      user_id?.full_name ||
+      [user_id?.first_name, user_id?.last_name].filter(Boolean).join(" ") ||
+      user_id?.username;
+
+    return (
+      <Card
+        className={`${styles.feedCard} ${className || ""}`}
+        variant="default"
+        padding="none"
+        {...props}
+      >
+        {/* Header: Avatar + Author + Date */}
+        <div className={styles.feedHeader}>
+          <Link
+            to={user_id?.username ? `/profile/${user_id.username}` : "#"}
+            className={styles.feedAuthorLink}
+          >
+            <FallbackImage
+              src={resolveImage(user_id?.avatar)}
+              alt={authorName || "Author"}
+              className={styles.feedAvatar}
+            />
+            <div className={styles.feedAuthorMeta}>
+              <span className={styles.feedAuthorName}>{authorName}</span>
+              <span className={styles.feedDate}>
+                {formatDate(published_at)}
+                {readTime ? ` • ${readTime} min read` : ""}
+              </span>
+            </div>
+          </Link>
+        </div>
+
+        {/* Body: Title + Description + Topics */}
+        <div className={styles.feedBody}>
+          <Link to={`/blog/${slug}`} className={styles.feedTitleLink}>
+            <h3 className={styles.feedTitle}>{title}</h3>
+          </Link>
+          {description && (
+            <p className={styles.feedDescription}>{description}</p>
+          )}
+          {Array.isArray(topic) && topic.length > 0 && (
+            <div className={styles.feedTopics}>
+              {topic.map((t) => (
+                <Badge key={t.id} variant="primary" size="sm">
+                  {t.name}
+                </Badge>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Image */}
+        {thumbnail && (
+          <Link to={`/blog/${slug}`} className={styles.feedImageLink}>
+            <FallbackImage
+              src={resolveImage(thumbnail)}
+              alt={title}
+              className={styles.feedImage}
+              lazy={true}
+            />
+          </Link>
+        )}
+
+        {/* Stats row */}
+        {showInteractions &&
+          (optimisticLikes > 0 || views_count > 0) && (
+            <div className={styles.feedStats}>
+              {optimisticLikes > 0 && (
+                <span className={styles.feedStat}>
+                  ❤ {optimisticLikes}
+                </span>
+              )}
+              {showViewCount && views_count > 0 && (
+                <span className={styles.feedStat}>
+                  👁 {views_count} views
+                </span>
+              )}
+            </div>
+          )}
+
+        {/* Action bar: Like / Comment / Save */}
+        {showInteractions && (
+          <div className={styles.feedActions}>
+            <button
+              className={`${styles.feedActionButton} ${
+                optimisticLiked ? styles.feedActionLiked : ""
+              }`}
+              onClick={handleLike}
+              disabled={likingInProgress}
+              type="button"
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill={optimisticLiked ? "currentColor" : "none"}
+              >
+                <path
+                  d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              <span>Like</span>
+            </button>
+
+            <Link to={`/blog/${slug}`} className={styles.feedActionButton}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              <span>Comment</span>
+            </Link>
+
+            <button
+              className={styles.feedActionButton}
+              onClick={handleShare}
+              type="button"
+              aria-label="Share this post"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <circle
+                  cx="18"
+                  cy="5"
+                  r="3"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                />
+                <circle
+                  cx="6"
+                  cy="12"
+                  r="3"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                />
+                <circle
+                  cx="18"
+                  cy="19"
+                  r="3"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                />
+                <path
+                  d="M8.59 13.51L15.42 17.49M15.41 6.51L8.59 10.49"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+              </svg>
+              <span>Share</span>
+            </button>
+          </div>
+        )}
+      </Card>
+    );
+  }
+
   return (
     <Card
       className={`${styles.postCard} ${compact ? styles.compact : ""} ${
@@ -124,7 +316,7 @@ const PostCard = ({
       <div className={styles.imageContainer}>
         <Link to={`/blog/${slug}`}>
           <FallbackImage
-            src={thumbnail}
+            src={resolveImage(thumbnail)}
             alt={title}
             className={styles.image}
             lazy={true}
@@ -163,7 +355,7 @@ const PostCard = ({
           <div className={styles.user_id}>
             {user_id?.avatar && (
               <FallbackImage
-                src={user_id.avatar}
+                src={resolveImage(user_id.avatar)}
                 alt={user_id.full_name}
                 className={styles.authorAvatar}
                 lazy={true}

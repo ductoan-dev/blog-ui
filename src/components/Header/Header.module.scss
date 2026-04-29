@@ -111,6 +111,77 @@
     }
 }
 
+.search {
+    display: none;
+    align-items: center;
+    flex: 1;
+    max-width: 420px;
+    margin: 0 $spacing-4;
+    padding: 0 $spacing-3;
+    height: 40px;
+    background-color: $gray-100;
+    border: 1px solid transparent;
+    border-radius: $radius-full;
+    transition: border-color $transition-base, background-color $transition-base,
+        box-shadow $transition-base;
+
+    @include tablet-up {
+        display: flex;
+    }
+
+    &:hover {
+        background-color: $gray-200;
+    }
+
+    &:focus-within {
+        background-color: $bg-primary;
+        border-color: $primary-500;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    }
+}
+
+.searchIcon {
+    color: $gray-500;
+    flex-shrink: 0;
+}
+
+.searchInput {
+    flex: 1;
+    border: none;
+    background: transparent;
+    outline: none;
+    padding: 0 $spacing-2;
+    font-size: $text-sm;
+    color: $gray-900;
+
+    &::placeholder {
+        color: $gray-500;
+    }
+}
+
+.searchClear {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: $gray-300;
+    color: $gray-700;
+    border-radius: 50%;
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0;
+    transition: background-color $transition-base;
+
+    &:hover {
+        background: $gray-400;
+        color: $gray-900;
+    }
+}
+
 .actions {
     @include flex-center;
     gap: $spacing-3;

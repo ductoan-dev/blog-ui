@@ -18,19 +18,41 @@ const EditProfile = () => {
   // Mock current user data - trong thực tế sẽ fetch từ API hoặc context
   const { currentUser } = useUser();
 
-  console.log(settings);
-
   useEffect(() => {
-    if (currentUser) {
-      setUser(currentUser?.data);
-      if (currentUser.data.settings) {
-        setSettings(JSON.parse(currentUser.data.settings.data));
+    if (!currentUser?.data) return;
+    setUser(currentUser.data);
+
+    const raw = currentUser.data.settings?.data;
+    if (raw) {
+      try {
+        setSettings(JSON.parse(raw));
+      } catch {
+        setSettings(null);
       }
     }
   }, [currentUser]);
 
+  const parseSkills = (raw) => {
+    if (Array.isArray(raw)) return raw.join(", ");
+    if (typeof raw !== "string" || !raw) return "";
+    try {
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed.join(", ") : raw;
+    } catch {
+      return raw;
+    }
+  };
+
+  const deriveFullname = (u) => {
+    if (u?.fullname) return u.fullname;
+    const first = u?.first_name?.trim();
+    const last = u?.last_name?.trim();
+    if (first && last) return `${first} ${last}`;
+    return first || last || "";
+  };
+
   const [formData, setFormData] = useState({
-    fullname: user?.fullname || "",
+    fullname: deriveFullname(user),
     first_name: user?.first_name || "",
     last_name: user?.last_name || "",
     username: user?.username || "",
@@ -45,10 +67,7 @@ const EditProfile = () => {
       github_url: user?.github_url || "",
       linkedin_url: user?.linkedin_url || "",
     },
-    skills:
-      typeof user?.skills === "string"
-        ? JSON.parse(user?.skills || null)?.join(", ") || ""
-        : [],
+    skills: parseSkills(user?.skills),
 
     privacy: {
       profileVisibility: "public", // public, private
@@ -66,7 +85,7 @@ const EditProfile = () => {
 
   useEffect(() => {
     setFormData({
-      fullname: user?.fullname || "",
+      fullname: deriveFullname(user),
       first_name: user?.first_name || "",
       last_name: user?.last_name || "",
       username: user?.username || "",
@@ -81,10 +100,7 @@ const EditProfile = () => {
         github_url: user?.github_url || "",
         linkedin_url: user?.linkedin_url || "",
       },
-      skills:
-        typeof user?.skills === "string"
-          ? JSON.parse(user?.skills || null)?.join(", ") || ""
-          : [],
+      skills: parseSkills(user?.skills),
 
       privacy: {
         profileVisibility: settings?.defaultPostVisibility || "public", // public, private
@@ -277,7 +293,13 @@ const EditProfile = () => {
       formDataToSend.append("linkedin_url", formData.social.linkedin_url);
 
       // Thêm skills (convert array)
-      const skillsArray = formData.skills
+      const rawSkills =
+        typeof formData.skills === "string"
+          ? formData.skills
+          : Array.isArray(formData.skills)
+          ? formData.skills.join(",")
+          : "";
+      const skillsArray = rawSkills
         .split(",")
         .map((skill) => skill.trim())
         .filter((skill) => skill.length > 0);
@@ -310,7 +332,11 @@ const EditProfile = () => {
       });
     } catch (error) {
       console.error("Error saving profile:", error);
-      setErrors({ submit: "Failed to save profile. Please try again." });
+      const message =
+        typeof error === "string"
+          ? error
+          : error?.message || "Failed to save profile. Please try again.";
+      setErrors({ submit: message });
     } finally {
       setLoading(false);
     }
@@ -428,14 +454,11 @@ const EditProfile = () => {
               <div className={styles.grid}>
                 <Input
                   label="Full Name"
-                  value={
-                    formData?.fullname ||
-                    `${formData?.first_name} ${formData?.last_name}`
-                  }
+                  value={formData?.fullname || ""}
                   onChange={(e) =>
                     handleInputChange("fullname", e.target.value)
                   }
-                  error={errors.name}
+                  error={errors.fullname}
                   required
                   fullWidth
                 />

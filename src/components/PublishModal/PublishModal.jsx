@@ -82,11 +82,11 @@ const PublishModal = ({
                         <Input
                             label="Meta Title"
                             placeholder="SEO-friendly title (recommended: 50-60 characters)"
-                            value={formData.metaTitle || ""}
+                            value={formData.meta_title || ""}
                             onChange={(e) =>
                                 setFormData((prev) => ({
                                     ...prev,
-                                    metaTitle: e.target.value,
+                                    meta_title: e.target.value,
                                 }))
                             }
                             fullWidth
@@ -96,11 +96,11 @@ const PublishModal = ({
                         <Input
                             label="Meta Description"
                             placeholder="Brief description for search engines (recommended: 150-160 characters)"
-                            value={formData.metaDescription || ""}
+                            value={formData.meta_description || ""}
                             onChange={(e) =>
                                 setFormData((prev) => ({
                                     ...prev,
-                                    metaDescription: e.target.value,
+                                    meta_description: e.target.value,
                                 }))
                             }
                             fullWidth
@@ -114,10 +114,10 @@ const PublishModal = ({
                     <div className={styles.section}>
                         <h3 className={styles.sectionTitle}>Cover Image</h3>
 
-                        {formData.coverImage ? (
+                        {formData.previewThumbnail ? (
                             <div className={styles.imagePreview}>
                                 <FallbackImage
-                                    src={formData.coverImage}
+                                    src={formData.previewThumbnail}
                                     alt="Cover preview"
                                     className={styles.coverImage}
                                 />
@@ -140,7 +140,8 @@ const PublishModal = ({
                                         onClick={() =>
                                             setFormData((prev) => ({
                                                 ...prev,
-                                                coverImage: "",
+                                                thumbnail: null,
+                                                previewThumbnail: "",
                                             }))
                                         }
                                         className={styles.removeImageButton}

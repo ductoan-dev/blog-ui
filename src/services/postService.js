@@ -41,7 +41,7 @@ export const getListByUserBookmarks = async () => {
 };
 export const getRelatedPosts = async (currentPostId) => {
   const result = await httpRequest.get(`/posts/${currentPostId}/related`);
-  return result;
+  return result.data;
 };
 
 export const create = async (data) => {

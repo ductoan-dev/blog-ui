@@ -14,9 +14,7 @@ export const getUserByUserName = async (username) => {
 // };
 
 export const editProfile = async (formData) => {
-  const result = await httpRequest.put(`/users/edit-profile`, formData, {
-    headers: { "Content-Type": "multipart/form-data" }, // để multer parse được
-  });
+  const result = await httpRequest.put(`/users/edit-profile`, formData);
   return result;
 };
 export const checkFollower = async (userId) => {

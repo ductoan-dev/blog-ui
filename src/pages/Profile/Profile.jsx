@@ -48,10 +48,16 @@ const Profile = () => {
 
         const userData = { ...response.data };
 
-        userData.skills =
-          typeof userData.skills === "string"
-            ? JSON.parse(userData.skills) || []
-            : userData.skills;
+        if (typeof userData.skills === "string") {
+          try {
+            const parsed = JSON.parse(userData.skills);
+            userData.skills = Array.isArray(parsed) ? parsed : [];
+          } catch {
+            userData.skills = [];
+          }
+        } else if (!Array.isArray(userData.skills)) {
+          userData.skills = [];
+        }
 
         setUser({
           ...userData,
@@ -80,7 +86,7 @@ const Profile = () => {
           location: userData.address || "",
           website: userData.website_url || "",
           joinedDate: userData.created_at || new Date().toISOString(),
-          coverImage:
+          featuredImage:
             userData?.cover_image ||
             "https://via.placeholder.com/1200x300?text=Cover+Image",
           badges: userData.badges || [],

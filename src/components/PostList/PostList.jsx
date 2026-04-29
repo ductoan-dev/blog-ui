@@ -64,16 +64,17 @@ const PostList = ({
             <div key={post.id || post.slug} className={styles.postItem}>
               <PostCard
                 id={post.id}
-                likes={post.likes_count}
-                views={post.views_count}
+                variant={layout === "list" ? "feed" : "card"}
+                likes_count={post.likes_count}
+                views_count={post.views_count}
                 title={post.title}
-                excerpt={post.meta_description}
-                user={post.user}
+                description={post.description}
+                user_id={post.user}
                 published_at={post.published_at}
                 readTime={Math.floor((Math.random() + 1) * 10)}
-                topic={post.topics?.map((t) => t.name).join(", ")} // FIXED: prevent error
+                topic={post.topics}
                 slug={post.slug}
-                featuredImage={post.thumbnail}
+                thumbnail={post.thumbnail}
                 isLiked={!!post?.is_like}
                 onLike={(id, liked) => handleLike(id, liked)}
                 onBookmark={(id, liked) => handleBookmark(id, liked)}
