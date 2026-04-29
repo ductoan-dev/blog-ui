@@ -170,10 +170,7 @@ const PostCard = ({
               />
             )}
             <Link
-              to={`/profile/${
-                user_id?.username ||
-                user_id?.username?.toLowerCase().replace(/\s+/g, "-", "_", ".")
-              }`}
+              to={user_id?.username ? `/profile/${user_id.username}` : "#"}
               className={styles.authorName}
             >
               {user_id?.username}

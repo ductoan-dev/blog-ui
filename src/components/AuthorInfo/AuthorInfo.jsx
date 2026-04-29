@@ -95,9 +95,7 @@ const AuthorInfo = ({
         <div className={styles.info}>
           <h3 className={styles.name}>
             <Link
-              to={`/profile/${
-                user?.username || first_name?.toLowerCase().replace(/\s+/g, "-")
-              }`}
+              to={user?.username ? `/profile/${user.username}` : "#"}
               className={styles.nameLink}
             >
               {user?.fullname || `${user?.first_name} ${user?.last_name}`}

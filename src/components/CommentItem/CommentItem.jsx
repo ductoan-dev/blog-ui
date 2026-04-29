@@ -155,10 +155,7 @@ const CommentItem = ({
           <div className={styles.header}>
             <div className={styles.info}>
               <Link
-                to={`/profile/${
-                  user?.username ||
-                  user?.username?.toLowerCase().replace(/\s+/g, "-")
-                }`}
+                to={user?.username ? `/profile/${user.username}` : "#"}
                 className={styles.authorName}
               >
                 {user?.fullname || `${user?.first_name} ${user?.last_name}`}

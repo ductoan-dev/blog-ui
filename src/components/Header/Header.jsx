@@ -228,7 +228,7 @@ const Header = () => {
                       </div>
                       <nav className={styles.dropdownNav}>
                         <Link
-                          to={`/profile/${user?.username || "john-doe"}`}
+                          to={user?.username ? `/profile/${user.username}` : "#"}
                           className={styles.dropdownItem}
                         >
                           <svg
@@ -395,7 +395,7 @@ const Header = () => {
                 </div>
                 <nav className={styles.mobileUserNav}>
                   <Link
-                    to={`/profile/${user?.username || "john-doe"}`}
+                    to={user?.username ? `/profile/${user.username}` : "#"}
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Profile
