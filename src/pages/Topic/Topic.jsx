@@ -40,9 +40,8 @@ const Topic = () => {
 
         setTopic(data);
 
-        // Calculate total pages
-        const totalPostsCount = data.postCount;
-        setTotalPages(Math.ceil(totalPostsCount / postsPerPage));
+        const totalPostsCount = data.posts_count || 0;
+        setTotalPages(Math.ceil(totalPostsCount / postsPerPage) || 1);
       } catch (err) {
         setError("Failed to load topic");
       } finally {
@@ -61,12 +60,12 @@ const Topic = () => {
       if (!topic) return;
       setPostsLoading(true);
       try {
-        const mocksPosts = await postService.getListTopicById(topic.id);
-        setPosts(mocksPosts.data);
+        const res = await postService.getListTopicById(topic.id);
+        setPosts(res?.data || []);
       } catch (error) {
         console.log(error);
       } finally {
-        setLoading(false);
+        setPostsLoading(false);
       }
     };
     fetchPosts();
@@ -110,7 +109,7 @@ const Topic = () => {
 
         {/* Posts List */}
         <PostList
-          // maxPosts={posts.length}
+          maxPosts={posts.length}
           posts={posts}
           loading={postsLoading}
           currentPage={currentPage}

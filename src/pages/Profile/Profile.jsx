@@ -8,6 +8,7 @@ import EmptyState from "../../components/EmptyState/EmptyState";
 import Loading from "../../components/Loading/Loading";
 import FallbackImage from "../../components/FallbackImage/FallbackImage";
 import ChatWindow from "../../components/ChatWindow/ChatWindow";
+import FollowListModal from "../../components/FollowListModal/FollowListModal";
 
 import styles from "./Profile.module.scss";
 import userService from "../../services/userService";
@@ -31,6 +32,9 @@ const Profile = () => {
   const [user, setUser] = useState({});
   const [isFollow, setIsFollow] = useState(false);
   const [followers, setFollowers] = useState(0);
+  const [followModal, setFollowModal] = useState(null); // "followers" | "following" | null
+  const [followList, setFollowList] = useState([]);
+  const [followListLoading, setFollowListLoading] = useState(false);
   const { currentUser } = useUser();
   // console.log(currentUser);
 
@@ -94,7 +98,7 @@ const Profile = () => {
             posts_count: userData.posts_count || 0,
             followers: userData.follower_count || 0,
             following: userData.following_count || 0,
-            likes: userData.like_count || 0,
+            likes: userData.likes_count || 0,
           },
         });
         console.log("Profile đã được tải thành công:", userData);
@@ -181,9 +185,27 @@ const Profile = () => {
     navigate(`/profile/${username}/edit`);
   };
 
+  const handleOpenFollowModal = async (type) => {
+    if (!user?.id) return;
+    setFollowModal(type);
+    setFollowList([]);
+    setFollowListLoading(true);
+    try {
+      const fn = type === "followers"
+        ? userService.getFollowersList
+        : userService.getFollowingList;
+      const result = await fn(user.id);
+      setFollowList(result?.data || []);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setFollowListLoading(false);
+    }
+  };
+
   const handleFollow = async () => {
     try {
-      await userService.toggleFollower(user.id);
+      await userService.toggleFollower(user?.id);
 
       const toggle = !isFollow;
 
@@ -315,14 +337,20 @@ const Profile = () => {
                   <strong>{profile.stats?.posts_count || 0}</strong>
                   <span>Posts</span>
                 </div>
-                <div className={styles.stat}>
+                <button
+                  className={styles.stat}
+                  onClick={() => handleOpenFollowModal("followers")}
+                >
                   <strong>{followers}</strong>
                   <span>Followers</span>
-                </div>
-                <div className={styles.stat}>
+                </button>
+                <button
+                  className={styles.stat}
+                  onClick={() => handleOpenFollowModal("following")}
+                >
                   <strong>{profile.stats?.following || 0}</strong>
                   <span>Following</span>
-                </div>
+                </button>
                 <div className={styles.stat}>
                   <strong>{profile.stats?.likes || 0}</strong>
                   <span>Likes</span>
@@ -520,11 +548,21 @@ const Profile = () => {
             name: profile.name,
             avatar: profile.avatar,
             username: profile.username,
+            userId: user.id,
           }}
           isOpen={isChatOpen}
           isMinimized={isChatMinimized}
           onClose={handleChatClose}
           onMinimize={handleChatMinimize}
+        />
+      )}
+
+      {followModal && (
+        <FollowListModal
+          title={followModal === "followers" ? "Followers" : "Following"}
+          users={followList}
+          loading={followListLoading}
+          onClose={() => setFollowModal(null)}
         />
       )}
     </div>
