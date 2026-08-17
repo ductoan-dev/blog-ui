@@ -19,8 +19,8 @@ const ChatWindow = ({ user, isOpen = false, onClose, onMinimize, isMinimized = f
   const navigate = useNavigate();
   const { socket } = useSocket() || {};
   const { user: authUser } = useAuth() || {};
-  // authUser is the user object directly: { _id, id, username, ... }
-  const me = authUser?.id || authUser?._id?.toString() || "";
+  // authUser is the user object directly: { id, username, ... }
+  const me = authUser?.id || "";
 
   const [conversationId, setConversationId] = useState(null);
   const [messages, setMessages] = useState([]);
