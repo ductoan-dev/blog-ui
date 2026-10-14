@@ -34,37 +34,35 @@ const BlogDetail = () => {
   const { currentUser } = useUser();
 
   useEffect(() => {
-    (async () => {
-      if (post) {
-        await postService.updateViews(post?.id);
-      }
-      console.log(post, "hihi");
-    })();
-  }, [post]); 
-  useEffect(() => {
+    let ignore = false;
+
     const loadPost = async () => {
       setLoading(true);
       try {
         const response = await postService.getBySlug(slug);
-        console.log("Post data:", response);
 
-        if (response?.post) {
-          setPost(response.post);
-          setLikes(response.post.likes_count || 0);
-          setViews(response.post.views_count || 0);
-          setIsLiked(response.post.is_like || 0);
+        if (!ignore && response?.post) {
+          const p = response.post;
+          setPost(p);
+          setLikes(p.likes_count || 0);
+          setViews(p.views_count || 0);
+          setIsLiked(!!p.is_like);
+          setIsBookmarked(!!p.is_bookmark);
+          postService.updateViews(p.id);
         }
       } catch (error) {
-        console.error("Failed to load post:", error);
-        setPost(null);
+        if (!ignore) {
+          console.error("Failed to load post:", error);
+          setPost(null);
+        }
       } finally {
-        setLoading(false);
+        if (!ignore) setLoading(false);
       }
     };
 
-    if (slug) {
-      loadPost();
-    }
+    if (slug) loadPost();
+
+    return () => { ignore = true; };
   }, [slug]);
 
   useEffect(() => {
@@ -207,8 +205,8 @@ const BlogDetail = () => {
               ...comment,
               is_like: !comment.is_like,
               like_count: comment.is_like
-                ? comment.likes_count - 1
-                : comment.likes_count + 1,
+                ? comment.like_count - 1
+                : comment.like_count + 1,
             };
           }
 
@@ -219,8 +217,8 @@ const BlogDetail = () => {
                   ...reply,
                   is_like: !reply.is_like,
                   like_count: reply.is_like
-                    ? reply.likes_count - 1
-                    : reply.likes_count + 1,
+                    ? reply.like_count - 1
+                    : reply.like_count + 1,
                 };
               }
               return reply;

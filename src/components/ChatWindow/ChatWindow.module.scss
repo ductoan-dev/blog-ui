@@ -146,6 +146,27 @@
     }
 }
 
+.loadingState,
+.emptyState {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: $text-muted;
+    font-size: $text-sm;
+    padding: $spacing-6;
+    text-align: center;
+}
+
+.msgAvatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    align-self: flex-end;
+    margin-right: $spacing-2;
+}
+
 .messages {
     flex: 1;
     overflow-y: auto;

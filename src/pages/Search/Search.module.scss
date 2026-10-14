@@ -1,0 +1,168 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.page {
+    padding: $spacing-6 0;
+    background: #f0f2f5;
+    min-height: 100vh;
+}
+
+.leftSidebar {
+    display: none;
+
+    @include desktop-up {
+        display: flex;
+        flex-direction: column;
+        position: fixed;
+        left: 0;
+        top: 80px;
+        bottom: 0;
+        width: 280px;
+        padding: $spacing-3 $spacing-2;
+        overflow-y: auto;
+        // background: #f0f2f5;
+        z-index: 5;
+
+        &::-webkit-scrollbar { width: 8px; }
+        &::-webkit-scrollbar-thumb { background: transparent; border-radius: 4px; }
+        &:hover::-webkit-scrollbar-thumb { background: $gray-300; }
+    }
+}
+
+.layout {
+    display: flex;
+    justify-content: center;
+}
+
+.main {
+    width: 100%;
+    max-width: 860px;
+}
+
+.header {
+    display: flex;
+    align-items: baseline;
+    gap: $spacing-3;
+    margin-bottom: $spacing-5;
+    padding: $spacing-5 $spacing-6;
+    background: $bg-primary;
+    border-radius: $radius-lg;
+    border: 1px solid $border-light;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    flex-wrap: wrap;
+}
+
+.title {
+    font-size: $text-xl;
+    font-weight: $font-bold;
+    color: $text-primary;
+    margin: 0;
+
+    &::before {
+        content: "🔍 ";
+    }
+}
+
+.meta {
+    font-size: $text-sm;
+    color: $text-secondary;
+    margin: 0;
+}
+
+.empty {
+    background: $bg-primary;
+    border-radius: $radius-lg;
+    border: 1px solid $border-light;
+    padding: $spacing-16 $spacing-6;
+    text-align: center;
+
+    p {
+        font-size: $text-sm;
+        color: $text-secondary;
+        margin: $spacing-3 0 0;
+    }
+}
+
+.emptyIcon {
+    font-size: 3rem;
+    display: block;
+}
+
+.section {
+    margin-bottom: $spacing-6;
+}
+
+.sectionTitle {
+    font-size: $text-base;
+    font-weight: $font-semibold;
+    color: $text-secondary;
+    margin: 0 0 $spacing-3;
+    padding: 0 $spacing-1;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: $text-xs;
+}
+
+.userGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: $spacing-3;
+
+    @include mobile-only {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+.userCard {
+    display: flex;
+    align-items: center;
+    gap: $spacing-3;
+    padding: $spacing-3 $spacing-4;
+    background: $bg-primary;
+    border-radius: $radius-lg;
+    border: 1px solid $border-light;
+    text-decoration: none;
+    transition: box-shadow 0.15s, transform 0.15s;
+
+    &:hover {
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        transform: translateY(-2px);
+    }
+}
+
+.avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.userInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.userName {
+    font-size: $text-sm;
+    font-weight: $font-semibold;
+    color: $text-primary;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.userHandle {
+    font-size: $text-xs;
+    color: $text-secondary;
+}
+
+.userTitle {
+    font-size: $text-xs;
+    // color: $text-tertiary;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

@@ -74,12 +74,36 @@
     margin: 0;
 }
 
-.newMessageButton {
-    color: $text-secondary;
+.headerRight {
+    display: flex;
+    align-items: center;
+    gap: $spacing-2;
+}
+
+.socketDot {
+    width: 8px;
+    height: 8px;
+    border-radius: $radius-full;
+    background: $success-500;
+    flex-shrink: 0;
+}
+
+.composeBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: $radius-full;
+    background: $primary-50;
+    color: $primary-600;
+    cursor: pointer;
+    transition: background-color $transition-fast;
+    flex-shrink: 0;
 
     &:hover {
-        color: $primary-600;
-        background-color: $primary-50;
+        background: $primary-100;
     }
 }
 
@@ -90,6 +114,121 @@
 
 .searchInput {
     width: 100%;
+    padding: $spacing-2 $spacing-3;
+    border: 1px solid $border-light;
+    border-radius: $radius-lg;
+    font-size: $text-sm;
+    outline: none;
+    background: $bg-primary;
+    color: $text-primary;
+    box-sizing: border-box;
+
+    &:focus {
+        border-color: $primary-400;
+    }
+
+    &::placeholder {
+        color: $text-muted;
+    }
+}
+
+/* Compose panel */
+.composePanel {
+    border-bottom: 1px solid $border-light;
+}
+
+.composeSearch {
+    width: 100%;
+    padding: $spacing-3 $spacing-4;
+    border: none;
+    border-bottom: 1px solid $border-light;
+    font-size: $text-sm;
+    outline: none;
+    background: $bg-primary;
+    color: $text-primary;
+    box-sizing: border-box;
+
+    &::placeholder {
+        color: $text-muted;
+    }
+}
+
+.composeResults {
+    max-height: 280px;
+    overflow-y: auto;
+}
+
+.composeLoading {
+    padding: $spacing-4;
+    display: flex;
+    justify-content: center;
+}
+
+.composeUserItem {
+    display: flex;
+    align-items: center;
+    gap: $spacing-3;
+    padding: $spacing-3 $spacing-4;
+    cursor: pointer;
+    transition: background-color $transition-fast;
+
+    &:hover {
+        background: $gray-50;
+    }
+}
+
+.composeUserAvatar {
+    width: 36px;
+    height: 36px;
+    border-radius: $radius-full;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.composeUserInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.composeUserName {
+    font-size: $text-sm;
+    font-weight: $font-medium;
+    color: $text-primary;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.composeUserHandle {
+    font-size: $text-xs;
+    color: $text-secondary;
+}
+
+.composeEmpty {
+    padding: $spacing-4;
+    text-align: center;
+    font-size: $text-sm;
+    color: $text-muted;
+    margin: 0;
+}
+
+/* Shared helpers */
+.centerLoading {
+    padding: $spacing-6;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.emptyHint {
+    font-size: $text-sm;
+    color: $text-muted;
+    text-align: center;
+    margin: 0;
+    padding: 0 $spacing-4;
 }
 
 .conversationsList {
@@ -367,6 +506,66 @@
     color: $text-secondary;
     line-height: $leading-relaxed;
     margin: 0;
+}
+
+.offlineBadge {
+    font-size: $text-xs;
+    color: $text-muted;
+    padding: $spacing-1 $spacing-2;
+    background: $gray-100;
+    border-radius: $radius-md;
+    margin-left: auto;
+}
+
+.typing {
+    color: $primary-500;
+    font-style: italic;
+}
+
+/* Typing indicator bubble */
+.typingBubble {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: $spacing-3 $spacing-4 !important;
+    min-width: 52px;
+}
+
+.dot {
+    width: 7px;
+    height: 7px;
+    border-radius: $radius-full;
+    background: $text-muted;
+    animation: bounce 1.2s infinite;
+
+    &:nth-child(2) { animation-delay: 0.2s; }
+    &:nth-child(3) { animation-delay: 0.4s; }
+}
+
+@keyframes bounce {
+    0%, 60%, 100% { transform: translateY(0); }
+    30% { transform: translateY(-5px); }
+}
+
+.emptyComposeLink {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: $radius-full;
+    background: $primary-600;
+    color: #fff;
+    font-size: $text-base;
+    font-weight: $font-bold;
+    border: none;
+    cursor: pointer;
+    line-height: 1;
+    vertical-align: middle;
+
+    &:hover {
+        background: $primary-700;
+    }
 }
 
 /* ===== RESPONSIVE ===== */

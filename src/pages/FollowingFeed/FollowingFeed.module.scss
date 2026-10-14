@@ -1,0 +1,181 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.page {
+    padding: $spacing-6 0;
+    background: #f0f2f5;
+    min-height: 100vh;
+}
+
+.leftSidebar {
+    display: none;
+
+    @include desktop-up {
+        display: flex;
+        flex-direction: column;
+        position: fixed;
+        left: 0;
+        top: 80px;
+        bottom: 0;
+        width: 280px;
+        padding: $spacing-3 $spacing-2;
+        overflow-y: auto;
+        // background: #f0f2f5;
+        z-index: 5;
+
+        &::-webkit-scrollbar { width: 8px; }
+        &::-webkit-scrollbar-thumb { background: transparent; border-radius: 4px; }
+        &:hover::-webkit-scrollbar-thumb { background: $gray-300; }
+    }
+}
+
+.layout {
+    display: flex;
+    justify-content: center;
+}
+
+.main {
+    width: 100%;
+    max-width: 860px;
+}
+
+.header {
+    display: flex;
+    align-items: baseline;
+    gap: $spacing-3;
+    margin-bottom: $spacing-5;
+    padding: $spacing-5 $spacing-6;
+    background: $bg-primary;
+    border-radius: $radius-lg;
+    border: 1px solid $border-light;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.title {
+    font-size: $text-xl;
+    font-weight: $font-bold;
+    color: $text-primary;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: $spacing-2;
+
+    &::before {
+        content: "👥";
+    }
+}
+
+.subtitle {
+    font-size: $text-sm;
+    color: $text-secondary;
+    margin: 0;
+}
+
+.userGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: $spacing-4;
+
+    @include mobile-only {
+        grid-template-columns: 1fr 1fr;
+        gap: $spacing-3;
+    }
+}
+
+.userCard {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: $spacing-3;
+    padding: $spacing-5 $spacing-4;
+    background: $bg-primary;
+    border-radius: $radius-lg;
+    border: 1px solid $border-light;
+    text-decoration: none;
+    transition: box-shadow 0.15s, transform 0.15s;
+
+    &:hover {
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        transform: translateY(-2px);
+    }
+}
+
+.avatar {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: $spacing-1;
+    min-width: 0;
+    width: 100%;
+    text-align: center;
+}
+
+.name {
+    font-size: $text-sm;
+    font-weight: $font-semibold;
+    color: $text-primary;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+.username {
+    font-size: $text-xs;
+    color: $text-secondary;
+}
+
+.title2 {
+    font-size: $text-xs;
+    // color: $text-tertiary;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+.empty {
+    background: $bg-primary;
+    border-radius: $radius-lg;
+    border: 1px solid $border-light;
+    padding: $spacing-16 $spacing-6;
+    text-align: center;
+
+    p {
+        font-size: $text-sm;
+        color: $text-secondary;
+        margin: $spacing-3 0 $spacing-6;
+        max-width: 300px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+}
+
+.emptyIcon {
+    font-size: 3rem;
+    display: block;
+}
+
+.loginBtn {
+    display: inline-block;
+    padding: $spacing-2 $spacing-6;
+    background: $primary-600;
+    color: #fff;
+    border-radius: $radius-full;
+    font-weight: $font-semibold;
+    font-size: $text-sm;
+    text-decoration: none;
+    transition: background-color $transition-fast;
+
+    &:hover {
+        background: $primary-700;
+    }
+}

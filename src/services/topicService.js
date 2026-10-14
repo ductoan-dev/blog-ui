@@ -17,28 +17,13 @@ export const getBySlug = async (slug) => {
   return topic.data;
 };
 
-// export const create = async (data) => {
-//   const topic = await httpRequest.topic("/topics", data);
-
-//   return topic.data;
-// };
-// export const update = async (id, data) => {
-//   const topic = await httpRequest.put(`/topics/${id}`, data);
-
-//   return topic.data;
-// };
-
-// export const remove = async (id) => {
-//   const topic = await httpRequest.remove(`/topics/${id}`);
-
-//   return topic.data;
-// };
+export const createTopic = async (data) => {
+  return await httpRequest.post("/topics", data);
+};
 
 export default {
   getListTopic,
   getById,
   getBySlug,
-  // create,
-  // update,
-  // remove,
+  createTopic,
 };

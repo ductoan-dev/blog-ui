@@ -1,0 +1,109 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.container {
+    position: fixed;
+    bottom: $spacing-6;
+    right: $spacing-6;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-2;
+    pointer-events: none;
+
+    @include mobile-only {
+        bottom: $spacing-3;
+        right: $spacing-3;
+        left: $spacing-3;
+    }
+}
+
+.toast {
+    display: flex;
+    align-items: center;
+    gap: $spacing-3;
+    padding: $spacing-3 $spacing-4;
+    background: $bg-primary;
+    border-radius: $radius-lg;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14), 0 2px 8px rgba(0, 0, 0, 0.08);
+    border: 1px solid $border-light;
+    width: 320px;
+    cursor: pointer;
+    pointer-events: all;
+    animation: slideIn 0.25s ease;
+    transition: box-shadow 0.15s;
+
+    &:hover {
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+    }
+
+    @include mobile-only {
+        width: 100%;
+    }
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(120%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: $radius-full;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.name {
+    font-size: $text-sm;
+    font-weight: $font-semibold;
+    color: $text-primary;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.preview {
+    font-size: $text-sm;
+    color: $text-secondary;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.close {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: $text-muted;
+    font-size: 18px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: $radius-full;
+    transition: background-color $transition-fast;
+
+    &:hover {
+        background: $gray-100;
+        color: $text-secondary;
+    }
+}

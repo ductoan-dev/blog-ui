@@ -4,6 +4,15 @@ import { BrowserRouter } from "react-router-dom";
 import { AppRoutes, ScrollToTop, ErrorBoundary } from "./components";
 import "./styles/index.scss";
 import { AuthProvider } from "./context/AuthContext";
+import { SocketProvider } from "./context/SocketContext";
+import MessageToast from "./components/MessageToast/MessageToast";
+
+const AppWithSocket = () => (
+  <SocketProvider>
+    <AppRoutes />
+    <MessageToast />
+  </SocketProvider>
+);
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
@@ -11,7 +20,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
       <BrowserRouter>
         <ScrollToTop>
           <AuthProvider>
-            <AppRoutes />
+            <AppWithSocket />
           </AuthProvider>
         </ScrollToTop>
       </BrowserRouter>

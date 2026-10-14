@@ -16,9 +16,7 @@ export const getByUserName = async (username) => {
 };
 export const getListTopicById = async (topicId) => {
   const post = await httpRequest.get(`/posts/topic/${topicId}`);
-  console.log(post);
-
-  return post.data;
+  return post;
 };
 export const getBySlug = async (slug) => {
   const post = await httpRequest.get(`/posts/slug/${slug}`);
@@ -61,8 +59,18 @@ export const remove = async (id) => {
 
   return post.data;
 };
+export const getFollowingFeed = async () => {
+  const result = await httpRequest.get("/posts/following");
+  return result;
+};
+
 export const updateViews = async (id) => {
   const result = await httpRequest.post(`/posts/views/${id}`);
+  return result;
+};
+
+export const search = async (q) => {
+  const result = await httpRequest.get(`/posts/search?q=${encodeURIComponent(q)}`);
   return result;
 };
 
@@ -76,8 +84,10 @@ export default {
   getRelatedPosts,
   toggleBookmarkPost,
   toggleLikePost,
+  getFollowingFeed,
   create,
   update,
   remove,
   updateViews,
+  search,
 };

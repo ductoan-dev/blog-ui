@@ -28,17 +28,28 @@ export const toggleFollower = async (userId) => {
 
   return result;
 };
+export const getFollowersList = async (userId) => {
+  return await httpRequest.get(`/users/${userId}/followers`);
+};
+
+export const getFollowingList = async (userId) => {
+  return await httpRequest.get(`/users/${userId}/following`);
+};
+export const searchUsers = async (q) => {
+  return await httpRequest.get(`/users/search?q=${encodeURIComponent(q)}`);
+};
 export const settings = async (data) => {
   const result = await httpRequest.post(`/users/settings`, data);
-  console.log(result);
-
   return result;
 };
+
 export default {
   getUserByUserName,
   toggleFollower,
-  // getCurrentUser,
   editProfile,
   checkFollower,
+  getFollowersList,
+  getFollowingList,
+  searchUsers,
   settings,
 };

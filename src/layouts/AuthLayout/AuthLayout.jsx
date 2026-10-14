@@ -12,7 +12,7 @@ const AuthLayout = ({ children }) => {
                 {/* Footer */}
                 <div className={styles.footer}>
                     <p className="text-muted text-center">
-                        &copy; 2024 BlogUI. All rights reserved.
+                        &copy; 2026 BlogUI. All rights reserved.
                     </p>
                 </div>
             </div>

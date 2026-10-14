@@ -27,7 +27,13 @@ const CommentItem = ({
   const [showDropdown, setShowDropdown] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isShowEdit, setIsShowEdit] = useState(false);
+  const [, setTick] = useState(0);
   const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const timer = setInterval(() => setTick((t) => t + 1), 30000);
+    return () => clearInterval(timer);
+  }, []);
 
   const { currentUser } = useUser();
 

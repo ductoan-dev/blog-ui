@@ -1,0 +1,195 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.72);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    padding: $spacing-4;
+}
+
+.modal {
+    background: $bg-primary;
+    border-radius: $radius-xl;
+    padding: $spacing-6;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: $spacing-4;
+    max-width: 640px;
+    width: 100%;
+    box-shadow: $shadow-xl;
+}
+
+.modalHeader {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    h3 {
+        font-size: $text-lg;
+        font-weight: $font-semibold;
+        color: $text-primary;
+        margin: 0;
+    }
+}
+
+.closeBtn {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: none;
+    color: $text-muted;
+    cursor: pointer;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color $transition-fast, color $transition-fast;
+
+    &:hover {
+        background: $bg-muted;
+        color: $text-primary;
+    }
+}
+
+.hint {
+    font-size: $text-sm;
+    color: $text-muted;
+    margin: 0;
+}
+
+.cropWrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: $spacing-4;
+    background: $gray-100;
+    border-radius: $radius-lg;
+    width: 100%;
+}
+
+// The crop viewport — overflow hidden cuts the image to the crop area
+.cropArea {
+    position: relative;
+    overflow: hidden;
+    cursor: grab;
+    background: $gray-800;
+    border-radius: $radius-md;
+    flex-shrink: 0;
+
+    &.circle {
+        border-radius: 50%;
+
+        // Ring guide visible outside the circle
+        &::after {
+            content: "";
+            position: absolute;
+            inset: -4px;
+            border-radius: 50%;
+            border: 4px solid rgba(255, 255, 255, 0.5);
+            pointer-events: none;
+            z-index: 2;
+        }
+    }
+
+    &.dragging {
+        cursor: grabbing;
+    }
+}
+
+.cropImg {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform-origin: center center;
+    user-select: none;
+    pointer-events: none;
+    // Width auto keeps natural aspect ratio; actual scaling is via transform
+    max-width: none;
+}
+
+// Zoom slider row
+.zoomRow {
+    display: flex;
+    align-items: center;
+    gap: $spacing-3;
+    width: 100%;
+    max-width: 400px;
+}
+
+.zoomIcon {
+    color: $text-muted;
+    flex-shrink: 0;
+}
+
+.zoomSlider {
+    flex: 1;
+    accent-color: $primary-500;
+    cursor: pointer;
+    height: 4px;
+}
+
+.actions {
+    display: flex;
+    gap: $spacing-3;
+    width: 100%;
+    justify-content: flex-end;
+    padding-top: $spacing-2;
+    border-top: 1px solid $border-light;
+}
+
+.cancelBtn {
+    padding: $spacing-2 $spacing-5;
+    border: 1px solid $border-medium;
+    background: none;
+    color: $text-primary;
+    border-radius: $radius-md;
+    font-size: $text-sm;
+    font-weight: $font-medium;
+    cursor: pointer;
+    transition: background-color $transition-fast;
+
+    &:hover {
+        background: $bg-secondary;
+    }
+}
+
+.applyBtn {
+    padding: $spacing-2 $spacing-5;
+    border: none;
+    background: $primary-500;
+    color: #fff;
+    border-radius: $radius-md;
+    font-size: $text-sm;
+    font-weight: $font-medium;
+    cursor: pointer;
+    transition: background-color $transition-fast;
+
+    &:hover {
+        background: $primary-600;
+    }
+}
+
+// Responsive: on small screens shrink the cover crop display
+@media (max-width: $breakpoint-md) {
+    .modal {
+        padding: $spacing-4;
+        gap: $spacing-3;
+    }
+
+    .cropWrapper {
+        padding: $spacing-2;
+        overflow-x: auto;
+    }
+
+    .cropArea {
+        // Allow horizontal scroll on mobile for wide cover
+        flex-shrink: 0;
+    }
+}
