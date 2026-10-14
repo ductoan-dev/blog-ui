@@ -133,6 +133,20 @@
     }
 }
 
+.feedVideoWrapper {
+    background-color: $gray-900;
+    border-top: 1px solid $border-light;
+    border-bottom: 1px solid $border-light;
+}
+
+// Portrait videos stay within the screen, centered on a dark backdrop
+.feedVideo {
+    display: block;
+    width: 100%;
+    max-height: 70vh;
+    object-fit: contain;
+}
+
 .feedStats {
     display: flex;
     align-items: center;

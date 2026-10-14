@@ -58,7 +58,7 @@
     border-bottom: 1px solid $border-light;
 }
 
-.author {
+.authorSection {
     display: flex;
     align-items: center;
     gap: $spacing-3;
@@ -226,6 +226,8 @@
         padding: $spacing-6;
         border-radius: $radius-md;
         overflow-x: auto;
+        max-width: 100%;
+        white-space: pre;
         margin: $spacing-8 0;
 
         @include mobile-only {
@@ -240,15 +242,51 @@
         }
     }
 
-    img {
+    table {
+        display: block;
+        max-width: 100%;
+        overflow-x: auto;
+        border-collapse: collapse;
+        margin: $spacing-8 0;
+
+        th, td {
+            padding: $spacing-3 $spacing-4;
+            border: 1px solid $border-medium;
+            text-align: left;
+            white-space: nowrap;
+        }
+
+        th {
+            background-color: $bg-secondary;
+            font-weight: $font-semibold;
+        }
+    }
+
+    img,
+    video,
+    iframe {
+        display: block;
         width: 100%;
         height: auto;
+        border: none;
         border-radius: $radius-md;
         margin: $spacing-8 0;
 
         @include mobile-only {
             margin: $spacing-6 0;
         }
+    }
+
+    // Portrait videos must fit the screen: cap height, keep aspect ratio
+    video {
+        max-height: 75vh;
+        object-fit: contain;
+        background-color: $gray-900;
+    }
+
+    // YouTube/Vimeo embeds have no intrinsic size
+    iframe {
+        aspect-ratio: 16 / 9;
     }
 
     a {

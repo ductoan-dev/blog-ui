@@ -1,19 +1,37 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useLayoutEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import Input from "../../components/Input/Input";
+import clsx from "clsx";
 import Button from "../../components/Button/Button";
-import Badge from "../../components/Badge/Badge";
-import FallbackImage from "../../components/FallbackImage/FallbackImage";
+import BlogContent from "../../components/BlogContent/BlogContent";
 import RichTextEditor from "../../components/RichTextEditor/RichTextEditor";
 import PublishModal from "../../components/PublishModal/PublishModal";
+import { useAuth } from "../../context/AuthContext";
 import styles from "./WritePost.module.scss";
 import dayjs from "dayjs";
 import topicService from "../../services/topicService";
 import postService from "../../services/postService";
+import mediaService from "../../services/mediaService";
+import resolveMediaUrl from "../../utils/resolveMediaUrl";
+
+const WORDS_PER_MINUTE = 200;
+const VIDEO_MAX_SIZE_MB = 100; // khớp giới hạn ở blog-api/src/middlewares/upload.js
+
+const stripHtml = (html) => html.replace(/<[^>]*>/g, " ");
+
+// A post with only an image/video (no text) still has content
+const hasMedia = (html) => /<(img|video|iframe)\b/i.test(html);
+
+// Textarea grows with its content so title/excerpt read like the final post
+const autoResize = (el) => {
+  if (!el) return;
+  el.style.height = "auto";
+  el.style.height = `${el.scrollHeight}px`;
+};
 
 const WritePost = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const isEditing = Boolean(slug);
 
   const [formData, setFormData] = useState({
@@ -31,14 +49,16 @@ const WritePost = () => {
 
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
+  const [isDirty, setIsDirty] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
-  const [selectedTopics, setSelectedTopics] = useState([]);
   const [topicInput, setTopicInput] = useState("");
-  const [isHeaderScrolled, setIsHeaderScrolled] = useState(false);
   const [showPublishModal, setShowPublishModal] = useState(false);
   const [topics, setTopics] = useState([]);
+  const [videoProgress, setVideoProgress] = useState(null); // null = không upload
 
-  const headerRef = useRef(null);
+  const titleRef = useRef(null);
+  const descriptionRef = useRef(null);
+  const editorRef = useRef(null);
 
   useEffect(() => {
     (async () => {
@@ -69,28 +89,31 @@ const WritePost = () => {
         ...prev,
         ...mockPost,
       }));
-      setSelectedTopics(mockPost.topics);
     }
   }, [isEditing]);
 
+  useLayoutEffect(() => {
+    autoResize(titleRef.current);
+    autoResize(descriptionRef.current);
+  }, [formData.title, formData.description, previewMode]);
+
+  // Warn before leaving the page with unsaved changes
   useEffect(() => {
-    const handleScroll = () => {
-      if (headerRef.current) {
-        const headerRect = headerRef.current.getBoundingClientRect();
-        const isSticky = headerRect.top <= 0;
-        setIsHeaderScrolled(isSticky);
-      }
+    if (!isDirty) return;
+    const handleBeforeUnload = (e) => {
+      e.preventDefault();
+      e.returnValue = "";
     };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [isDirty]);
 
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  const handleInputChange = (field) => (e) => {
+  const updateField = (field, value) => {
     setFormData((prev) => ({
       ...prev,
-      [field]: e.target.value,
+      [field]: value,
     }));
+    setIsDirty(true);
 
     if (errors[field]) {
       setErrors((prev) => ({
@@ -100,36 +123,47 @@ const WritePost = () => {
     }
   };
 
+  const handleInputChange = (field) => (e) => updateField(field, e.target.value);
+
+  // Enter moves focus to the next field instead of inserting a newline
+  const focusOnEnter = (next) => (e) => {
+    if (e.key === "Enter" && !e.nativeEvent.isComposing) {
+      e.preventDefault();
+      next()?.focus();
+    }
+  };
+
   const handleAddTopic = (topic) => {
-    if (topic && !selectedTopics.includes(topic)) {
-      const newTopics = [...selectedTopics, topic];
-      setSelectedTopics(newTopics);
-      setFormData((prev) => ({
-        ...prev,
-        topics: newTopics,
-      }));
+    if (topic && !formData.topics.includes(topic)) {
+      updateField("topics", [...formData.topics, topic]);
       setTopicInput("");
     }
   };
 
   const handleRemoveTopic = (topicToRemove) => {
-    const newTopics = selectedTopics.filter((topic) => topic !== topicToRemove);
-    setSelectedTopics(newTopics);
-    setFormData((prev) => ({
-      ...prev,
-      topics: newTopics,
-    }));
+    updateField(
+      "topics",
+      formData.topics.filter((topic) => topic !== topicToRemove)
+    );
   };
+
+  const plainContent = stripHtml(formData.content).trim();
+  const wordCount = plainContent.split(/\s+/).filter(Boolean).length;
+  const readingTime = Math.max(1, Math.ceil(wordCount / WORDS_PER_MINUTE));
 
   const validateForm = () => {
     const newErrors = {};
     if (!formData.title.trim()) newErrors.title = "Title is required";
     if (!formData.description.trim())
       newErrors.description = "Excerpt is required";
-    if (!formData.content.trim()) newErrors.content = "Content is required";
+    if (!plainContent && !hasMedia(formData.content))
+      newErrors.content = "Content is required";
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    const isValid = Object.keys(newErrors).length === 0;
+    // Errors are only visible in write mode
+    if (!isValid) setPreviewMode(false);
+    return isValid;
   };
 
   const buildFormData = (data, status = "draft") => {
@@ -156,39 +190,47 @@ const WritePost = () => {
     return form;
   };
 
-  const handleSave = async (status = "draft") => {
-    if (!validateForm()) return;
+  const submitPost = async (data, status) => {
+    // Ctrl+S also lands here, so block saving mid-upload
+    if (saving || videoProgress !== null || !validateForm()) return;
     setSaving(true);
     try {
-      const form = buildFormData(formData, status);
-      await postService.create(form);
-
-      console.log("Saving post:", Object.fromEntries(form.entries()));
-      navigate("/my-posts");
-    } catch (error) {
-      console.error("Error saving post:", error);
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handlePublish = async (publishData) => {
-    if (!validateForm()) return;
-    setSaving(true);
-    try {
-      const form = buildFormData(publishData, "published");
-
-      await postService.create(form);
-
-      console.log("Publishing post:", Object.fromEntries(form.entries()));
+      await postService.create(buildFormData(data, status));
+      setIsDirty(false);
       setShowPublishModal(false);
       navigate("/my-posts");
     } catch (error) {
-      console.error("Error publishing post:", error);
+      // httpRequest throws the server message as a string
+      setErrors((prev) => ({
+        ...prev,
+        submit: typeof error === "string" ? error : "Could not save your post",
+      }));
     } finally {
       setSaving(false);
     }
   };
+
+  const handleSaveDraft = () => submitPost(formData, "draft");
+
+  const handlePublish = (publishData) => submitPost(publishData, "published");
+
+  const handleOpenPublishModal = () => {
+    if (validateForm()) {
+      setShowPublishModal(true);
+    }
+  };
+
+  // Ctrl/Cmd + S saves the draft
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
+        e.preventDefault();
+        handleSaveDraft();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  });
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
@@ -199,155 +241,177 @@ const WritePost = () => {
         thumbnail: file,
         previewThumbnail: previewUrl,
       }));
+      setIsDirty(true);
     }
   };
 
-  const handleOpenPublishModal = () => {
-    if (validateForm()) {
-      setShowPublishModal(true);
+  // Returns the video URL for the editor to embed, or null on failure
+  const handleUploadVideo = async (file) => {
+    const showError = (message) => {
+      setErrors((prev) => ({ ...prev, submit: message }));
+      return null;
+    };
+
+    if (!file.type.startsWith("video/")) {
+      return showError("Please choose a video file");
+    }
+    if (file.size > VIDEO_MAX_SIZE_MB * 1024 * 1024) {
+      return showError(`Video must be ${VIDEO_MAX_SIZE_MB}MB or smaller`);
+    }
+
+    setErrors((prev) => ({ ...prev, submit: "" }));
+    setVideoProgress(0);
+    try {
+      const { path } = await mediaService.uploadVideo(file, setVideoProgress);
+      // Local: path in uploads/; production: full Vercel Blob URL
+      return resolveMediaUrl(path);
+    } catch (error) {
+      return showError(
+        typeof error === "string" ? error : "Could not upload video"
+      );
+    } finally {
+      setVideoProgress(null);
     }
   };
 
-  const wordCount = formData.content
-    .split(/\s+/)
-    .filter((word) => word.length > 0).length;
-  const readingTime = Math.ceil(wordCount / 200);
+  const isUploading = videoProgress !== null;
+
+  const viewModes = [
+    { label: "Write", value: false },
+    { label: "Preview", value: true },
+  ];
 
   return (
     <div className={styles.container}>
-      <div className={styles.content}>
-        {!previewMode ? (
-          <div className={styles.editor}>
-            <div className={styles.form}>
-              <Input
-                label="Title"
-                placeholder="Enter your post title..."
-                value={formData.title}
-                onChange={handleInputChange("title")}
-                error={errors.title}
-                required
-                fullWidth
-                size="lg"
-              />
-              <Input
-                label="Excerpt"
-                placeholder="Write a brief description..."
-                value={formData.description}
-                onChange={handleInputChange("description")}
-                error={errors.description}
-                required
-                fullWidth
-              />
-              <div className={styles.contentSection}>
-                <label className={styles.label} htmlFor="content">
-                  Content *
-                </label>
-                <RichTextEditor
-                  value={formData.content}
-                  onChange={(value) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      content: value,
-                    }))
-                  }
-                  placeholder="Start writing your post content..."
-                  error={errors.content}
-                  className={styles.richTextEditor}
-                />
-              </div>
-            </div>
+      <header className={styles.toolbar}>
+        <div className={styles.toolbarInner}>
+          <div className={styles.status}>
+            <span className={styles.statusLabel}>
+              {isEditing ? "Editing" : "Draft"}
+            </span>
+            <span className={styles.stats}>
+              {wordCount} words · {readingTime} min read
+            </span>
+            {isUploading ? (
+              <span className={styles.uploading} role="status">
+                Uploading video {videoProgress}%
+              </span>
+            ) : (
+              isDirty && <span className={styles.unsaved}>Unsaved changes</span>
+            )}
           </div>
-        ) : (
-          <div className={styles.preview}>
-            <div className={styles.previewContent}>
-              <div className={styles.previewHeader}>
-                {formData.previewThumbnail && (
-                  <FallbackImage
-                    src={formData.previewThumbnail}
-                    alt={formData.title}
-                    className={styles.previewCoverImage}
-                  />
-                )}
-                <h1 className={styles.previewTitle}>
-                  {formData.title || "Your Post Title"}
-                </h1>
-                <p className={styles.previewExcerpt}>
-                  {formData.description || "Your post excerpt..."}
-                </p>
-                <div className={styles.previewTopics}>
-                  {selectedTopics.map((topic) => (
-                    <Badge key={topic} variant="primary">
-                      {topic}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-              <div className={styles.previewBody}>
-                <div
-                  className={styles.previewText}
-                  dangerouslySetInnerHTML={{
-                    __html: formData.content || "<p>Your post content...</p>",
-                  }}
-                />
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
 
-      <div
-        ref={headerRef}
-        className={`${styles.footer} ${
-          isHeaderScrolled ? styles.scrolled : ""
-        }`}
-      >
-        <div className={styles.footerContent}>
-          <h1 className={styles.title}>
-            {isEditing ? "Edit Post" : "Write New Post"}
-          </h1>
-          <div className={styles.stats}>
-            <span>{wordCount} words</span>
-            <span>~{readingTime} min read</span>
+          <div className={styles.viewToggle} role="tablist">
+            {viewModes.map((mode) => (
+              <button
+                key={mode.label}
+                type="button"
+                role="tab"
+                aria-selected={previewMode === mode.value}
+                className={clsx(styles.toggleButton, {
+                  [styles.active]: previewMode === mode.value,
+                })}
+                onClick={() => setPreviewMode(mode.value)}
+              >
+                {mode.label}
+              </button>
+            ))}
           </div>
-        </div>
-        <div className={styles.actions}>
-          <div className={styles.viewToggle}>
-            <button
-              className={`${styles.toggleButton} ${
-                !previewMode ? styles.active : ""
-              }`}
-              onClick={() => setPreviewMode(false)}
-            >
-              Write
-            </button>
-            <button
-              className={`${styles.toggleButton} ${
-                previewMode ? styles.active : ""
-              }`}
-              onClick={() => setPreviewMode(true)}
-            >
-              Preview
-            </button>
-          </div>
+
           <div className={styles.saveActions}>
             <Button
-              variant="secondary"
-              onClick={() => handleSave("draft")}
-              loading={saving}
-              disabled={saving}
+              variant="ghost"
+              size="sm"
+              onClick={handleSaveDraft}
+              loading={saving && !showPublishModal}
+              disabled={saving || isUploading}
+              title="Ctrl + S"
             >
-              Save Draft
+              Save draft
             </Button>
             <Button
               variant="primary"
+              size="sm"
               onClick={handleOpenPublishModal}
-              disabled={saving}
+              disabled={saving || isUploading}
             >
               {isEditing ? "Update" : "Publish"}
             </Button>
           </div>
         </div>
-      </div>
+
+        {errors.submit && (
+          <p className={styles.submitError} role="alert">
+            {errors.submit}
+          </p>
+        )}
+      </header>
+
+      <main className={styles.page}>
+        {!previewMode ? (
+          <div className={styles.editor}>
+            <div className={styles.field}>
+              <textarea
+                ref={titleRef}
+                rows={1}
+                className={clsx(styles.titleInput, {
+                  [styles.invalid]: errors.title,
+                })}
+                placeholder="Post title"
+                aria-label="Post title"
+                aria-invalid={Boolean(errors.title)}
+                value={formData.title}
+                onChange={handleInputChange("title")}
+                onKeyDown={focusOnEnter(() => descriptionRef.current)}
+                autoFocus={!isEditing}
+              />
+              {errors.title && (
+                <p className={styles.errorText}>{errors.title}</p>
+              )}
+            </div>
+
+            <div className={styles.field}>
+              <textarea
+                ref={descriptionRef}
+                rows={1}
+                className={clsx(styles.excerptInput, {
+                  [styles.invalid]: errors.description,
+                })}
+                placeholder="Write a short excerpt that hooks your readers..."
+                aria-label="Excerpt"
+                aria-invalid={Boolean(errors.description)}
+                value={formData.description}
+                onChange={handleInputChange("description")}
+                onKeyDown={focusOnEnter(() => editorRef.current)}
+              />
+              {errors.description && (
+                <p className={styles.errorText}>{errors.description}</p>
+              )}
+            </div>
+
+            <RichTextEditor
+              ref={editorRef}
+              value={formData.content}
+              onChange={(value) => updateField("content", value)}
+              onUploadVideo={handleUploadVideo}
+              placeholder="Tell your story..."
+              error={errors.content}
+              className={styles.richTextEditor}
+            />
+          </div>
+        ) : (
+          <BlogContent
+            title={formData.title || "Untitled post"}
+            description={formData.description}
+            content={formData.content}
+            thumbnail={formData.previewThumbnail}
+            user={user}
+            public_at={new Date().toISOString()}
+            readTime={readingTime}
+            tags={formData.topics}
+          />
+        )}
+      </main>
 
       <PublishModal
         isOpen={showPublishModal}
@@ -355,7 +419,7 @@ const WritePost = () => {
         onPublish={handlePublish}
         formData={formData}
         setFormData={setFormData}
-        selectedTopics={selectedTopics}
+        selectedTopics={formData.topics}
         topicInput={topicInput}
         setTopicInput={setTopicInput}
         availableTopics={topics}

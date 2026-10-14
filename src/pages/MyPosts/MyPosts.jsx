@@ -164,6 +164,7 @@ const MyPosts = () => {
                     title={post.title}
                     description={post.description}
                     thumbnail={post.thumbnail}
+                    content={post.content}
                     avatar={post?.avatar}
                     coverImage={post.coverImage}
                     readingTime={post.readingTime}

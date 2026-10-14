@@ -5,6 +5,8 @@ import Card from "../Card/Card";
 import Badge from "../Badge/Badge";
 import FallbackImage from "../FallbackImage/FallbackImage";
 import isHttps from "../../utils/isHttps";
+import getFirstVideo from "../../utils/getFirstVideo";
+import useAutoPlayVideo from "../../hook/useAutoPlayVideo";
 import styles from "./PostCard.module.scss";
 
 const resolveImage = (src) => {
@@ -13,8 +15,10 @@ const resolveImage = (src) => {
 };
 
 const PostCard = ({
+  id,
   title,
   thumbnail,
+  content,
   user_id,
   published_at,
   readTime,
@@ -44,6 +48,9 @@ const PostCard = ({
   const [optimisticLikes, setOptimisticLikes] = useState(likes_count);
   const [viewCount, setViewCount] = useState(views_count);
 
+  const videoSrc = getFirstVideo(content);
+  const autoPlayVideoRef = useAutoPlayVideo();
+
   const [likingInProgress, setLikingInProgress] = useState(false);
   const [bookmarkingInProgress, setBookmarkingInProgress] = useState(false);
   const formatDate = (dateString) => {
@@ -68,7 +75,7 @@ const PostCard = ({
     );
     setViewCount(optimisticLiked ? optimisticLikes - 1 : optimisticLikes + 1);
     try {
-      await onLike(slug, !optimisticLiked);
+      await onLike(id, !optimisticLiked);
     } catch (error) {
       // Revert on error
       setOptimisticLiked(optimisticLiked);
@@ -88,7 +95,7 @@ const PostCard = ({
     setOptimisticBookmarked(!optimisticBookmarked);
 
     try {
-      await onBookmark(slug, !optimisticBookmarked);
+      await onBookmark(id, !optimisticBookmarked);
     } catch (error) {
       // Revert on error
       setOptimisticBookmarked(optimisticBookmarked);
@@ -189,8 +196,21 @@ const PostCard = ({
           )}
         </div>
 
-        {/* Image */}
-        {thumbnail && (
+        {/* Media: video plays inline in the feed, otherwise the thumbnail */}
+        {videoSrc ? (
+          <div className={styles.feedVideoWrapper}>
+            <video
+              ref={autoPlayVideoRef}
+              src={videoSrc}
+              poster={thumbnail ? resolveImage(thumbnail) : undefined}
+              className={styles.feedVideo}
+              controls
+              muted
+              playsInline
+              preload="metadata"
+            />
+          </div>
+        ) : thumbnail && (
           <Link to={`/blog/${slug}`} className={styles.feedImageLink}>
             <FallbackImage
               src={resolveImage(thumbnail)}
@@ -315,12 +335,24 @@ const PostCard = ({
       {/* Featured Image */}
       <div className={styles.imageContainer}>
         <Link to={`/blog/${slug}`}>
-          <FallbackImage
-            src={resolveImage(thumbnail)}
-            alt={title}
-            className={styles.image}
-            lazy={true}
-          />
+          {!thumbnail && videoSrc ? (
+            // First frame of the video stands in for a missing thumbnail
+            <video
+              src={`${videoSrc}#t=0.1`}
+              className={styles.image}
+              muted
+              playsInline
+              preload="metadata"
+              aria-label={title}
+            />
+          ) : (
+            <FallbackImage
+              src={resolveImage(thumbnail)}
+              alt={title}
+              className={styles.image}
+              lazy={true}
+            />
+          )}
         </Link>
       </div>
 
@@ -518,6 +550,7 @@ const PostCard = ({
 PostCard.propTypes = {
   title: PropTypes.string.isRequired,
   thumbnail: PropTypes.string,
+  content: PropTypes.string,
   user_id: PropTypes.shape({
     full_name: PropTypes.string.isRequired,
     avatar: PropTypes.string,

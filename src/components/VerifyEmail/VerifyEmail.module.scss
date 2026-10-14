@@ -1,0 +1,85 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.verify {
+    @include flex-column;
+    align-items: center;
+    text-align: center;
+    gap: $spacing-4;
+    @include fade-in;
+}
+
+.icon {
+    @include flex-center;
+    width: 64px;
+    height: 64px;
+    border-radius: $radius-full;
+    margin-bottom: $spacing-2;
+
+    svg {
+        width: 32px;
+        height: 32px;
+    }
+
+    &.success {
+        background-color: $success-100;
+        color: $success-600;
+    }
+
+    &.error {
+        background-color: $error-100;
+        color: $error-600;
+    }
+}
+
+.spinner {
+    @include loading-spinner;
+    width: 48px;
+    height: 48px;
+    border-width: 3px;
+    margin-bottom: $spacing-2;
+}
+
+.title {
+    @include heading-4;
+    margin: 0;
+    color: $text-primary;
+}
+
+.text {
+    @include body-base;
+    max-width: 36ch;
+    margin: 0 0 $spacing-2;
+    color: $text-secondary;
+    text-wrap: pretty;
+}
+
+.hint {
+    margin: 0;
+    font-size: $text-sm;
+    color: $text-muted;
+}
+
+.actions {
+    @include flex-column;
+    align-items: center;
+    width: 100%;
+    gap: $spacing-3;
+}
+
+.link {
+    font-size: $text-sm;
+    color: $text-secondary;
+    text-decoration: none;
+
+    &:hover {
+        color: $primary-600;
+        text-decoration: underline;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .verify {
+        animation: none;
+    }
+}

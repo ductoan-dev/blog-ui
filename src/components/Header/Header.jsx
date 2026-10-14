@@ -7,9 +7,12 @@ import NotificationDropdown from "../NotificationDropdown/NotificationDropdown";
 import styles from "./Header.module.scss";
 import useUser from "../../hook/useUser";
 import isHttps from "../../utils/isHttps";
+import { useSocket } from "../../context/SocketContext";
+import { useAuth } from "../../context/AuthContext";
 
 const Header = () => {
   // Mock authentication state - trong thực tế sẽ từ context/store
+  const { logout } = useAuth();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -23,6 +26,7 @@ const Header = () => {
   const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
 
   const { currentUser } = useUser();
+  const { notifications, markNotifRead, markAllNotifsRead } = useSocket() || {};
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -43,50 +47,14 @@ const Header = () => {
     }
   }, [currentUser]);
 
-  // Mock notifications data
-  const mockNotifications = [
-    {
-      id: 1,
-      type: "like",
-      message: 'Sarah Johnson liked your post "Advanced React Patterns"',
-      link: "/blog/advanced-react-patterns",
-      read: false,
-      createdAt: "2024-01-20T10:30:00Z",
-    },
-    {
-      id: 2,
-      type: "comment",
-      message: 'Mike Chen commented on your post "Building Scalable APIs"',
-      link: "/blog/building-scalable-apis",
-      read: false,
-      createdAt: "2024-01-20T09:15:00Z",
-    },
-    {
-      id: 3,
-      type: "follow",
-      message: "Emily Rodriguez started following you",
-      link: "/profile/emily-rodriguez",
-      read: true,
-      createdAt: "2024-01-19T16:45:00Z",
-    },
-    {
-      id: 4,
-      type: "like",
-      message: 'David Kim and 5 others liked your post "CSS Grid Guide"',
-      link: "/blog/css-grid-guide",
-      read: true,
-      createdAt: "2024-01-19T14:20:00Z",
-    },
-  ];
-
-  const [notifications, setNotifications] = useState(mockNotifications);
-  const unreadCount = notifications.filter((n) => !n.read).length;
+  const liveNotifications = notifications || [];
+  const unreadCount = liveNotifications.filter((n) => !n.read).length;
 
   // Toggle auth state for demo (remove in production)
   // const toggleAuth = () => {
   //     setIsAuthenticated(!isAuthenticated);
   //     setIsDropdownOpen(false);
-  // }; 
+  // };
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -119,13 +87,15 @@ const Header = () => {
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("refresh_token");
+    // Clears the session app-wide; protected pages redirect via ProtectedRoute
+    logout();
 
     setIsAuthenticated(false);
     setUser(null);
     setIsDropdownOpen(false);
     setIsNotificationOpen(false);
+    setIsMobileMenuOpen(false);
+    navigate("/", { replace: true });
   };
 
   const handleNotificationToggle = () => {
@@ -134,19 +104,11 @@ const Header = () => {
   };
 
   const handleMarkAsRead = async (notificationId) => {
-    setNotifications((prev) =>
-      prev.map((notification) =>
-        notification.id === notificationId
-          ? { ...notification, read: true }
-          : notification
-      )
-    );
+    if (markNotifRead) markNotifRead(notificationId);
   };
 
   const handleMarkAllAsRead = async () => {
-    setNotifications((prev) =>
-      prev.map((notification) => ({ ...notification, read: true }))
-    );
+    if (markAllNotifsRead) markAllNotifsRead();
   };
 
   return (
@@ -224,7 +186,7 @@ const Header = () => {
                 {/* Notifications */}
                 <div ref={notificationRef}>
                   <NotificationDropdown
-                    notifications={notifications}
+                    notifications={liveNotifications}
                     unreadCount={unreadCount}
                     isOpen={isNotificationOpen}
                     onToggle={handleNotificationToggle}

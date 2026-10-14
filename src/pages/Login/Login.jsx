@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Input, Button } from "../../components";
 import styles from "./Login.module.scss";
 import authService from "../../services/authService";
@@ -7,6 +7,7 @@ import { useAuth } from "../../context/AuthContext";
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login: contextLogin } = useAuth();
   const [formData, setFormData] = useState({
     email: "",
@@ -87,17 +88,9 @@ const Login = () => {
         }
 
         try {
-          const userInfo = await fetch("/api/auth/me", {
-            headers: {
-              Authorization: `Bearer ${userData.token}`,
-              "Content-Type": "application/json",
-            },
-          });
-
-          const userResponse = await userInfo.json();
-          console.log("🔍 User info from /me:", userResponse);
-
-          const user = userResponse.data || userResponse;
+          // Via httpRequest so it hits the API base URL with the new token
+          const user = await authService.me();
+          if (!user) throw new Error("Could not load user info");
 
           contextLogin(user);
 
@@ -124,7 +117,8 @@ const Login = () => {
       }
 
       console.log("✅ Login successful");
-      navigate("/", { replace: true });
+      // Back to the protected page that sent the user here, if any
+      navigate(location.state?.from?.pathname || "/", { replace: true });
     } catch (error) {
       console.error("❌ Login failed:", error);
       setErrors({
@@ -145,6 +139,13 @@ const Login = () => {
           community.
         </p>
       </div>
+
+      {/* Coming from the email verification link */}
+      {location.state?.verified && (
+        <div className={styles.notice} role="status">
+          Email đã được xác thực. Đăng nhập để tiếp tục.
+        </div>
+      )}
 
       {/* Form */}
       <form className={styles.form} onSubmit={handleSubmit}>

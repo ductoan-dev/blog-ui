@@ -203,6 +203,7 @@ const Bookmarks = () => {
                     topic={bookmark.topics}
                     slug={bookmark.slug}
                     featuredImage={bookmark.thumbnail}
+                    content={bookmark.content}
                     isLiked={bookmark?.is_like ? true : false}
                     onLike={(id, liked) => handleLike(id, liked)}
                     onBookmark={(id, liked) => handleBookmark(id, liked)}

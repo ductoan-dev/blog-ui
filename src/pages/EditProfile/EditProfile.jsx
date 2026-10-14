@@ -4,9 +4,10 @@ import Button from "../../components/Button/Button";
 import Input from "../../components/Input/Input";
 import Card from "../../components/Card/Card";
 import FallbackImage from "../../components/FallbackImage/FallbackImage";
+import ImageCropModal from "../../components/ImageCropModal/ImageCropModal";
 import styles from "./EditProfile.module.scss";
 
-// import isHttps from "../../utils/isHttps";
+import resolveMediaUrl from "../../utils/resolveMediaUrl";
 import useUser from "../../hook/useUser";
 import userService from "../../services/userService";
 
@@ -80,8 +81,10 @@ const EditProfile = () => {
   });
 
   const [imageFiles, setImageFiles] = useState({});
-
   const [imagePreviews, setImagePreviews] = useState({});
+
+  // Crop modal state
+  const [cropModal, setCropModal] = useState(null); // { type: 'avatar'|'cover', src: dataUrl }
 
   useEffect(() => {
     setFormData({
@@ -164,47 +167,34 @@ const EditProfile = () => {
 
   const handleImageChange = (type, event) => {
     const file = event.target.files[0];
+    // Reset input so same file can be re-selected after cancel
+    event.target.value = "";
     if (!file) return;
 
-    // Validate file type
     if (!file.type.startsWith("image/")) {
-      setErrors((prev) => ({
-        ...prev,
-        [type]: "Please select a valid image file",
-      }));
+      setErrors((prev) => ({ ...prev, [type]: "Please select a valid image file" }));
       return;
     }
-
-    // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      setErrors((prev) => ({
-        ...prev,
-        [type]: "Image size must be less than 5MB",
-      }));
+      setErrors((prev) => ({ ...prev, [type]: "Image size must be less than 5MB" }));
       return;
     }
 
-    // Clear previous error
-    setErrors((prev) => ({
-      ...prev,
-      [type]: "",
-    }));
+    setErrors((prev) => ({ ...prev, [type]: "" }));
 
-    // Store file
-    setImageFiles((prev) => ({
-      ...prev,
-      [type]: file,
-    }));
-
-    // Create preview URL
+    // Read as data URL then open crop modal
     const reader = new FileReader();
     reader.onload = (e) => {
-      setImagePreviews((prev) => ({
-        ...prev,
-        [type]: e.target.result,
-      }));
+      setCropModal({ type, src: e.target.result });
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleCropApply = (file, previewUrl) => {
+    const { type } = cropModal;
+    setImageFiles((prev) => ({ ...prev, [type]: file }));
+    setImagePreviews((prev) => ({ ...prev, [type]: previewUrl }));
+    setCropModal(null);
   };
 
   const validateForm = () => {
@@ -370,14 +360,7 @@ const EditProfile = () => {
                 <div className={styles.imagePreview}>
                   <div className={styles.coverPreview}>
                     <FallbackImage
-                      src={
-                        imagePreviews.cover_image?.startsWith("http") ||
-                        imagePreviews.cover_image?.startsWith("data:")
-                          ? imagePreviews.cover_image
-                          : `${import.meta.env.VITE_BASE_URL}/${
-                              imagePreviews.cover_image
-                            }`
-                      }
+                      src={resolveMediaUrl(imagePreviews.cover_image)}
                       alt="Cover preview"
                       className={styles.coverImg}
                     />
@@ -406,14 +389,7 @@ const EditProfile = () => {
 
                   <div className={styles.avatarPreview}>
                     <FallbackImage
-                      src={
-                        imagePreviews.avatar?.startsWith("http") ||
-                        imagePreviews.avatar?.startsWith("data:")
-                          ? imagePreviews.avatar
-                          : `${import.meta.env.VITE_BASE_URL}/${
-                              imagePreviews.avatar
-                            }`
-                      }
+                      src={resolveMediaUrl(imagePreviews.avatar)}
                       alt="Avatar preview"
                       className={styles.avatarImg}
                     />
@@ -731,6 +707,15 @@ const EditProfile = () => {
           </form>
         </Card>
       </div>
+
+      {cropModal && (
+        <ImageCropModal
+          src={cropModal.src}
+          type={cropModal.type === "cover_image" ? "cover" : "avatar"}
+          onApply={handleCropApply}
+          onCancel={() => setCropModal(null)}
+        />
+      )}
     </div>
   );
 };

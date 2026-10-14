@@ -33,22 +33,9 @@ export const AuthProvider = ({ children }) => {
             setIsAuthenticated(false);
           }
         } else {
-          const storedUser = localStorage.getItem("user");
-          if (storedUser) {
-            try {
-              const parsedUser = JSON.parse(storedUser);
-
-              if (parsedUser.email) {
-                setUser(parsedUser);
-                setIsAuthenticated(true);
-              } else {
-                localStorage.removeItem("user");
-              }
-            } catch (parseError) {
-              console.error("Lỗi parse dữ liệu user:", parseError);
-              localStorage.removeItem("user");
-            }
-          }
+          // No token = not signed in; drop any user left over from an old session
+          localStorage.removeItem("user");
+          localStorage.removeItem("refresh_token");
         }
       } catch (error) {
         localStorage.removeItem("token");
@@ -85,10 +72,10 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     try {
       localStorage.removeItem("token");
+      localStorage.removeItem("refresh_token");
       localStorage.removeItem("user");
       setUser(null);
       setIsAuthenticated(false);
-      console.log("Đã đăng xuất");
     } catch (error) {
       console.error("Lỗi khi đăng xuất:", error);
     }

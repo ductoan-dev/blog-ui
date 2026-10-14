@@ -75,6 +75,7 @@ const PostList = ({
                 topic={post.topics}
                 slug={post.slug}
                 thumbnail={post.thumbnail}
+                content={post.content}
                 isLiked={!!post?.is_like}
                 onLike={(id, liked) => handleLike(id, liked)}
                 onBookmark={(id, liked) => handleBookmark(id, liked)}

@@ -1,100 +1,71 @@
 @use "../../styles/variables" as *;
 @use "../../styles/mixins" as *;
 
+// Same width as BlogContent so Write and Preview line up
+$page-max-width: 800px;
+$toolbar-height: 56px;
+
+// Scroll container (FullscreenLayout makes direct children scrollable)
 .container {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    background-color: $bg-secondary;
-    padding: $spacing-4;
+    background-color: $bg-primary;
+}
+
+// ===== TOOLBAR =====
+.toolbar {
+    position: sticky;
+    top: 0;
+    z-index: $z-sticky;
+    background-color: rgba($bg-primary, 0.95);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid $border-light;
+}
+
+.toolbarInner {
+    @include container;
+    @include flex-between;
+    min-height: $toolbar-height;
     gap: $spacing-4;
 
-    @include tablet-down {
-        padding: $spacing-3;
-        gap: $spacing-3;
-    }
-
     @include mobile-only {
-        padding: $spacing-2;
+        flex-wrap: wrap;
+        padding-top: $spacing-2;
+        padding-bottom: $spacing-2;
         gap: $spacing-2;
     }
 }
 
-.footer {
-    @include flex-between;
-    flex-shrink: 0;
-    gap: $spacing-6;
-    background-color: $surface-primary;
-    padding: $spacing-5;
-    border-radius: $radius-lg;
-    box-shadow: $shadow-sm;
-    border: 1px solid $border-light;
-    margin-top: 1rem;
-
-    // Sticky positioning at bottom
-    position: sticky;
-    bottom: $spacing-4;
-    z-index: 100;
-    transition: all $transition-base;
-
-    // Enhanced shadow when scrolled
-    &.scrolled {
-        box-shadow: $shadow-lg;
-        backdrop-filter: blur(8px);
-        background-color: rgba(255, 255, 255, 0.95);
-    }
-
-    @include tablet-down {
-        @include flex-column;
-        align-items: stretch;
-        gap: $spacing-4;
-        padding: $spacing-4;
-        border-radius: $radius-md;
-        bottom: $spacing-3;
-    }
-
-    @include mobile-only {
-        padding: $spacing-3;
-        gap: $spacing-3;
-        bottom: $spacing-2;
-    }
-}
-
-.footerContent {
-    flex: 1;
-
-    .title {
-        @include heading-2;
-        color: $text-primary;
-        margin-bottom: $spacing-2;
-    }
-
-    .stats {
-        display: flex;
-        gap: $spacing-3;
-        color: $text-muted;
-        font-size: $text-sm;
-
-        span {
-            &:not(:last-child)::after {
-                content: "•";
-                margin-left: $spacing-3;
-                color: $text-muted;
-            }
-        }
-    }
-}
-
-.actions {
+.status {
     display: flex;
     align-items: center;
-    gap: $spacing-4;
+    gap: $spacing-3;
+    min-width: 0;
+    font-size: $text-sm;
+}
 
-    @include tablet-down {
-        @include flex-column;
-        align-items: stretch;
-        gap: $spacing-3;
+.statusLabel {
+    font-weight: $font-semibold;
+    color: $text-primary;
+}
+
+.stats {
+    @include text-truncate;
+    color: $text-muted;
+}
+
+.unsaved,
+.uploading {
+    @include text-truncate;
+    color: $warning-700;
+}
+
+.unsaved {
+    @include mobile-only {
+        display: none;
     }
+}
+
+.uploading {
+    color: $primary-600;
 }
 
 .viewToggle {
@@ -103,18 +74,22 @@
     border-radius: $radius-md;
     padding: 2px;
     gap: 2px;
+
+    @include mobile-only {
+        order: 3;
+        width: 100%;
+    }
 }
 
 .toggleButton {
-    padding: $spacing-2 $spacing-4;
-    border: none;
+    @include button-base;
+    flex: 1;
+    padding: $spacing-1 $spacing-4;
+    min-height: 32px;
     background: none;
     color: $text-secondary;
     font-size: $text-sm;
-    font-weight: $font-medium;
-    border-radius: $radius-sm;
-    cursor: pointer;
-    transition: all $transition-base;
+    border-radius: $radius-base;
 
     &:hover {
         color: $text-primary;
@@ -129,648 +104,117 @@
 
 .saveActions {
     display: flex;
-    gap: $spacing-3;
-
-    @include tablet-down {
-        justify-content: stretch;
-
-        > * {
-            flex: 1;
-        }
-    }
+    gap: $spacing-2;
+    flex-shrink: 0;
 }
 
-.content {
-    flex: 1;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
+.submitError {
+    @include container;
+    padding-top: $spacing-2;
+    padding-bottom: $spacing-2;
+    background-color: $error-50;
+    color: $error-700;
+    font-size: $text-sm;
+}
+
+// ===== PAGE =====
+.page {
+    max-width: $page-max-width;
+    margin: 0 auto;
+    padding: $spacing-10 $spacing-6 $spacing-24;
+
+    @include mobile-only {
+        padding: $spacing-6 $spacing-4 $spacing-16;
+    }
 }
 
 .editor {
-    flex: 1;
-    background-color: $surface-primary;
-    border-radius: $radius-lg;
-    box-shadow: $shadow-sm;
-    border: 1px solid $border-light;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
+    @include flex-column;
+    gap: $spacing-4;
 }
 
-.form {
-    flex: 1;
-    overflow-y: auto;
-    padding: $spacing-6;
-
-    @include tablet-down {
-        padding: $spacing-5;
-    }
-
-    @include mobile-only {
-        padding: $spacing-4;
-    }
-}
-
-.label {
-    display: block;
-    font-weight: $font-semibold;
-    color: $text-primary;
-    margin-bottom: $spacing-2;
-    font-size: $text-sm;
-}
-
-// Image upload section
-.imageSection {
-    margin-bottom: $spacing-6;
-}
-
-.imagePreview {
-    position: relative;
-    border-radius: $radius-md;
-    overflow: hidden;
-    box-shadow: $shadow-base;
-}
-
-.coverImage {
-    width: 100%;
-    height: 200px;
-    object-fit: cover;
-    display: block;
-
-    @include tablet-up {
-        height: 300px;
-    }
-}
-
-.imageActions {
-    position: absolute;
-    top: $spacing-3;
-    right: $spacing-3;
-    display: flex;
-    gap: $spacing-2;
-    opacity: 0;
-    transition: opacity $transition-base;
-
-    .imagePreview:hover & {
-        opacity: 1;
-    }
-}
-
-.changeImageButton,
-.removeImageButton {
-    padding: $spacing-2 $spacing-3;
-    border: none;
-    border-radius: $radius-md;
-    font-size: $text-xs;
-    font-weight: $font-medium;
-    cursor: pointer;
-    transition: all $transition-base;
-    text-decoration: none;
-    display: inline-block;
-}
-
-.changeImageButton {
-    background-color: $primary-600;
-    color: $text-white;
-
-    &:hover {
-        background-color: $primary-700;
-    }
-}
-
-.removeImageButton {
-    background-color: $error-600;
-    color: $text-white;
-
-    &:hover {
-        background-color: $error-700;
-    }
-}
-
-.uploadArea {
-    border: 2px dashed $border-medium;
-    border-radius: $radius-lg;
-    padding: $spacing-12;
-    text-align: center;
-    transition: all $transition-base;
-
-    &:hover {
-        border-color: $primary-400;
-        background-color: $primary-50;
-    }
-
-    @include tablet-down {
-        padding: $spacing-8;
-    }
-}
-
-.uploadButton {
-    display: inline-flex;
-    align-items: center;
-    gap: $spacing-2;
-    padding: $spacing-3 $spacing-6;
-    background-color: $bg-secondary;
-    color: $text-primary;
-    border: 1px solid $border-medium;
-    border-radius: $radius-md;
-    font-weight: $font-medium;
-    cursor: pointer;
-    transition: all $transition-base;
-    text-decoration: none;
-
-    &:hover {
-        background-color: $primary-50;
-        border-color: $primary-300;
-        color: $primary-700;
-    }
-}
-
-.fileInput {
-    display: none;
-}
-
-// Topics section
-.topicsSection {
-    margin-bottom: $spacing-6;
-}
-
-.topicsInput {
-    position: relative;
-    margin-bottom: $spacing-3;
-}
-
-.topicInput {
-    width: 100%;
-    padding: $spacing-3;
-    border: 1px solid $border-medium;
-    border-radius: $radius-md;
-    font-size: $text-sm;
-    background-color: $bg-primary;
-    color: $text-primary;
-    transition: all $transition-base;
-
-    &::placeholder {
-        color: $text-muted;
-    }
-
-    &:focus {
-        outline: none;
-        border-color: $primary-500;
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-    }
-}
-
-.topicSuggestions {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background-color: $surface-primary;
-    border: 1px solid $border-light;
-    border-radius: $radius-md;
-    box-shadow: $shadow-lg;
-    z-index: $z-dropdown;
-    max-height: 200px;
-    overflow-y: auto;
-}
-
-.suggestionItem {
-    width: 100%;
-    padding: $spacing-3;
-    border: none;
-    background: none;
-    text-align: left;
-    color: $text-primary;
-    cursor: pointer;
-    transition: background-color $transition-base;
-
-    &:hover {
-        background-color: $bg-secondary;
-    }
-
-    &:not(:last-child) {
-        border-bottom: 1px solid $border-light;
-    }
-}
-
-.selectedTopics {
-    display: flex;
-    flex-wrap: wrap;
-    gap: $spacing-2;
-}
-
-.topicBadge {
-    display: flex;
-    align-items: center;
+.field {
+    @include flex-column;
     gap: $spacing-1;
 }
 
-.removeTopic {
-    background: none;
-    border: none;
-    color: inherit;
-    cursor: pointer;
-    font-size: $text-lg;
-    line-height: 1;
-    padding: 0;
-    margin-left: $spacing-1;
-    opacity: 0.7;
-    transition: opacity $transition-base;
-
-    &:hover {
-        opacity: 1;
-    }
-}
-
-// Content section
-.contentSection {
-    margin-bottom: $spacing-6;
-}
-
-.richTextEditor {
-    :global(.ql-editor) {
-        min-height: 400px;
-
-        @include tablet-up {
-            min-height: 500px;
-        }
-    }
-}
-
-.contentTextarea {
+// Borderless textareas styled like the published post
+%bare-textarea {
     width: 100%;
-    min-height: 500px;
-    padding: $spacing-4;
-    border: 1px solid $border-medium;
-    border-radius: $radius-md;
-    font-family: $font-mono;
-    font-size: $text-sm;
-    line-height: $leading-relaxed;
-    background-color: $bg-primary;
+    padding: 0;
+    border: none;
+    background: transparent;
     color: $text-primary;
-    resize: vertical;
-    transition: all $transition-base;
+    font-family: inherit;
+    resize: none;
+    overflow: hidden;
 
     &::placeholder {
-        color: $text-muted;
+        color: $gray-400;
     }
 
     &:focus {
         outline: none;
-        border-color: $primary-500;
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
     }
+}
 
-    &.error {
-        border-color: $error-500;
-    }
+.titleInput {
+    @extend %bare-textarea;
+    @include heading-1;
+    text-wrap: balance;
 
-    @include tablet-down {
-        min-height: 400px;
-        font-size: $text-xs;
+    @include mobile-only {
+        font-size: $text-3xl;
     }
+}
+
+.excerptInput {
+    @extend %bare-textarea;
+    @include body-large;
+    color: $text-secondary;
+    padding-bottom: $spacing-6;
+    border-bottom: 1px solid $border-light;
+}
+
+.invalid::placeholder {
+    color: $error-500;
 }
 
 .errorText {
     color: $error-600;
     font-size: $text-sm;
-    margin-top: $spacing-1;
 }
 
-// Preview mode
-.preview {
-    flex: 1;
-    background-color: $surface-primary;
-    border-radius: $radius-lg;
-    box-shadow: $shadow-sm;
-    border: 1px solid $border-light;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-}
+// Editor without its card frame; toolbar sticks under the page toolbar
+.page .editor .richTextEditor {
+    border: none;
+    box-shadow: none;
 
-.previewContent {
-    flex: 1;
-    overflow-y: auto;
-    padding: $spacing-6;
-
-    @include tablet-down {
-        padding: $spacing-5;
-    }
-
-    @include mobile-only {
-        padding: $spacing-4;
-    }
-}
-
-.previewHeader {
-    margin-bottom: $spacing-8;
-    padding-bottom: $spacing-6;
-    border-bottom: 1px solid $border-light;
-}
-
-.previewCoverImage {
-    width: 100%;
-    height: 250px;
-    object-fit: cover;
-    border-radius: $radius-md;
-    margin-bottom: $spacing-6;
-
-    @include tablet-up {
-        height: 350px;
-    }
-}
-
-.previewTitle {
-    @include heading-1;
-    color: $text-primary;
-    margin-bottom: $spacing-4;
-}
-
-.previewExcerpt {
-    @include body-large;
-    color: $text-secondary;
-    margin-bottom: $spacing-4;
-}
-
-.previewTopics {
-    display: flex;
-    flex-wrap: wrap;
-    gap: $spacing-2;
-    margin-bottom: $spacing-4;
-}
-
-.previewBody {
-    line-height: $leading-relaxed;
-}
-
-.previewText {
-    font-family: inherit;
-    font-size: 1rem;
-    color: #111827;
-    line-height: 1.625;
-    margin: 0;
-
-    // Style HTML content in preview mode
     :global {
-        h1,
-        h2,
-        h3,
-        h4,
-        h5,
-        h6 {
-            color: #111827;
-            font-weight: 600;
-            line-height: 1.25;
-            margin-bottom: 0.75rem;
-        }
+        .ql-toolbar {
+            position: sticky;
+            top: $toolbar-height;
+            z-index: 1;
+            background-color: $bg-primary;
+            border: none;
+            border-bottom: 1px solid $border-light;
+            padding: $spacing-2 0;
 
-        h1 {
-            font-size: 1.5rem;
-        }
-        h2 {
-            font-size: 1.25rem;
-        }
-        h3 {
-            font-size: 1.125rem;
-        }
-
-        p {
-            margin-bottom: 0.75rem;
-
-            &:last-child {
-                margin-bottom: 0;
+            @include mobile-only {
+                top: calc(#{$toolbar-height} + #{$spacing-10});
             }
         }
 
-        ul,
-        ol {
-            margin-bottom: 0.75rem;
-            padding-left: 1.5rem;
-        }
+        .ql-editor {
+            min-height: 50vh;
+            padding: $spacing-6 0 0;
+            font-size: $text-lg;
+            line-height: 1.75;
 
-        li {
-            margin-bottom: 0.25rem;
-        }
-
-        blockquote {
-            border-left: 4px solid #d1d5db;
-            padding-left: 1rem;
-            margin: 1rem 0;
-            color: #6b7280;
-            font-style: italic;
-        }
-
-        code {
-            background: #f3f4f6;
-            padding: 2px 4px;
-            border-radius: 0.25rem;
-            font-size: 0.875em;
-            color: #111827;
-        }
-
-        pre {
-            background: #f3f4f6;
-            border-radius: 0.25rem;
-            padding: 0.75rem;
-            margin: 0.75rem 0;
-            overflow-x: auto;
-
-            code {
-                background: none;
-                padding: 0;
+            &.ql-blank::before {
+                left: 0;
+                right: 0;
             }
         }
-
-        a {
-            color: #2563eb;
-            text-decoration: underline;
-
-            &:hover {
-                color: #1d4ed8;
-            }
-        }
-
-        img {
-            max-width: 100%;
-            height: auto;
-            border-radius: 0.25rem;
-            margin: 0.5rem 0;
-        }
-
-        strong {
-            font-weight: 600;
-        }
-
-        em {
-            font-style: italic;
-        }
-    }
-}
-
-// Loading state
-.loading {
-    @include flex-center;
-    @include flex-column;
-    gap: $spacing-4;
-    padding: $spacing-12;
-    background-color: $surface-primary;
-    border-radius: $radius-lg;
-    box-shadow: $shadow-sm;
-    border: 1px solid $border-light;
-
-    p {
-        color: $text-secondary;
-        font-size: $text-sm;
-    }
-}
-
-.spinner {
-    width: 32px;
-    height: 32px;
-    border: 3px solid $border-light;
-    border-top: 3px solid $primary-500;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    0% {
-        transform: rotate(0deg);
-    }
-    100% {
-        transform: rotate(360deg);
-    }
-}
-
-// Form spacing
-.form > * {
-    margin-bottom: $spacing-6;
-
-    &:last-child {
-        margin-bottom: 0;
-    }
-}
-
-// Responsive adjustments
-@include mobile-only {
-    .header {
-        margin-bottom: $spacing-4;
-    }
-
-    .actions {
-        gap: $spacing-2;
-    }
-
-    .saveActions {
-        flex-direction: column;
-        gap: $spacing-2;
-    }
-
-    .viewToggle {
-        width: 100%;
-
-        .toggleButton {
-            flex: 1;
-            text-align: center;
-        }
-    }
-}
-
-// Focus states for accessibility
-.toggleButton:focus-visible,
-.uploadButton:focus-visible,
-.suggestionItem:focus-visible,
-.removeTopic:focus-visible {
-    outline: 2px solid $primary-500;
-    outline-offset: 2px;
-}
-
-// Animation for topic suggestions
-.topicSuggestions {
-    animation: slideDown 0.2s ease-out;
-}
-
-@keyframes slideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-// Post Visibility Controls
-.visibilitySection {
-    margin-bottom: $spacing-6;
-}
-
-.visibilityOptions {
-    display: grid;
-    gap: $spacing-3;
-    margin-top: $spacing-3;
-}
-
-.visibilityOption {
-    border: 2px solid $border-light;
-    border-radius: $radius-lg;
-    padding: $spacing-4;
-    cursor: pointer;
-    background-color: $bg-primary;
-    transition: all 0.2s ease;
-
-    &:hover {
-        border-color: $primary-300;
-        background-color: $primary-50;
-    }
-
-    &.selected {
-        border-color: $primary-500;
-        background-color: $primary-100;
-        box-shadow: 0 0 0 3px rgba($primary-500, 0.1);
-    }
-}
-
-.optionHeader {
-    display: flex;
-    align-items: center;
-    gap: $spacing-3;
-    margin-bottom: $spacing-2;
-}
-
-.optionIcon {
-    font-size: $text-lg;
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.optionLabel {
-    font-weight: $font-semibold;
-    color: $text-primary;
-    flex: 1;
-}
-
-.visibilityRadio {
-    width: 20px;
-    height: 20px;
-    accent-color: $primary-500;
-}
-
-.optionDescription {
-    color: $text-secondary;
-    font-size: $text-sm;
-    margin: 0;
-    line-height: $leading-relaxed;
-}
-
-@include tablet-up {
-    .visibilityOptions {
-        grid-template-columns: 1fr 1fr 1fr;
     }
 }

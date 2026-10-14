@@ -104,7 +104,8 @@
     }
 }
 
-.submitError {
+.submitError,
+.notice {
     padding: $spacing-3;
     background-color: $error-50;
     border: 1px solid $error-200;
@@ -112,6 +113,13 @@
     color: $error-700;
     @include body-small;
     text-align: center;
+}
+
+.notice {
+    margin-bottom: $spacing-6;
+    background-color: $success-50;
+    border-color: $success-200;
+    color: $success-700;
 }
 
 .socialSection {

@@ -2,13 +2,13 @@ import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
 import Badge from "../Badge/Badge";
 import FallbackImage from "../FallbackImage/FallbackImage";
-import isHttps from "../../utils/isHttps";
+import resolveMediaUrl from "../../utils/resolveMediaUrl";
 import styles from "./BlogContent.module.scss";
 
-const resolveImage = (src) => {
-  if (!src) return src;
-  return isHttps(src) ? src : `${import.meta.env.VITE_BASE_URL}/${src}`;
-};
+// Quill editor saves &nbsp; between words in headings/justified paragraphs.
+// These non-breaking spaces prevent normal word-wrap and cause mid-word breaks.
+const normalizeHtml = (html) =>
+  html ? html.replace(/&nbsp;/g, " ").replace(/ /g, " ") : "";
 
 const BlogContent = ({
   title,
@@ -76,7 +76,7 @@ const BlogContent = ({
       {displayImage && (
         <div className={styles.imageContainer}>
           <FallbackImage
-            src={resolveImage(displayImage)}
+            src={resolveMediaUrl(displayImage)}
             alt={title}
             className={styles.featuredImage}
           />
@@ -98,7 +98,7 @@ const BlogContent = ({
           <div className={styles.authorSection}>
             {authorAvatar && (
               <FallbackImage
-                src={resolveImage(authorAvatar)}
+                src={resolveMediaUrl(authorAvatar)}
                 alt={authorName}
                 className={styles.authorAvatar}
               />
@@ -134,7 +134,7 @@ const BlogContent = ({
           {typeof description === "string" ? (
             <div
               className={styles.htmlContent}
-              dangerouslySetInnerHTML={{ __html: description }}
+              dangerouslySetInnerHTML={{ __html: normalizeHtml(description) }}
             />
           ) : (
             description
@@ -146,13 +146,10 @@ const BlogContent = ({
       {content && (
         <div className={styles.content}>
           {typeof content === "string" ? (
-            <>
-              <h3>Content:</h3>
-              <div
-                className={styles.htmlContent}
-                dangerouslySetInnerHTML={{ __html: content }}
-              />
-            </>
+            <div
+              className={styles.htmlContent}
+              dangerouslySetInnerHTML={{ __html: normalizeHtml(content) }}
+            />
           ) : (
             content
           )}

@@ -98,6 +98,7 @@ export default {
   forgotPassword,
   resetPassword,
   getUser,
+  me,
   verifyEmail,
   verifyToken,
 };

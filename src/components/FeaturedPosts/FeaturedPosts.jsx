@@ -87,6 +87,7 @@ const FeaturedPosts = ({
             <PostCard
               title={post.title}
               thumbnail={post.thumbnail}
+              content={post.content}
               user_id={post.user}
               description={post.description}
               likes_count={post.likes_count}
