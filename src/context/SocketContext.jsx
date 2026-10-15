@@ -56,8 +56,9 @@ export const SocketProvider = ({ children }) => {
     if ("Notification" in window && Notification.permission === "default") {
       Notification.requestPermission();
     }
+    // httpRequest already unwraps the HTTP body: res = { succsess, data: [...] }
     notificationService.getAll().then((res) => {
-      if (res?.data?.data) setNotifications(res.data.data);
+      if (Array.isArray(res?.data)) setNotifications(res.data);
     }).catch(() => {});
   }, [isAuthenticated]);
 
