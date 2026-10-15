@@ -5,7 +5,7 @@ import Card from "../Card/Card";
 import Badge from "../Badge/Badge";
 import FallbackImage from "../FallbackImage/FallbackImage";
 import isHttps from "../../utils/isHttps";
-import getFirstVideo from "../../utils/getFirstVideo";
+import getContentMedia from "../../utils/getContentMedia";
 import useAutoPlayVideo from "../../hook/useAutoPlayVideo";
 import styles from "./PostCard.module.scss";
 
@@ -48,7 +48,9 @@ const PostCard = ({
   const [optimisticLikes, setOptimisticLikes] = useState(likes_count);
   const [viewCount, setViewCount] = useState(views_count);
 
-  const videoSrc = getFirstVideo(content);
+  const { video: videoSrc, image: contentImage } = getContentMedia(content);
+  // No thumbnail: fall back to the first image in the post body
+  const coverImage = thumbnail ? resolveImage(thumbnail) : contentImage;
   const autoPlayVideoRef = useAutoPlayVideo();
 
   const [likingInProgress, setLikingInProgress] = useState(false);
@@ -210,10 +212,10 @@ const PostCard = ({
               preload="metadata"
             />
           </div>
-        ) : thumbnail && (
+        ) : coverImage && (
           <Link to={`/blog/${slug}`} className={styles.feedImageLink}>
             <FallbackImage
-              src={resolveImage(thumbnail)}
+              src={coverImage}
               alt={title}
               className={styles.feedImage}
               lazy={true}
@@ -335,8 +337,8 @@ const PostCard = ({
       {/* Featured Image */}
       <div className={styles.imageContainer}>
         <Link to={`/blog/${slug}`}>
-          {!thumbnail && videoSrc ? (
-            // First frame of the video stands in for a missing thumbnail
+          {!coverImage && videoSrc ? (
+            // First frame of the video stands in for a missing cover image
             <video
               src={`${videoSrc}#t=0.1`}
               className={styles.image}
@@ -347,7 +349,7 @@ const PostCard = ({
             />
           ) : (
             <FallbackImage
-              src={resolveImage(thumbnail)}
+              src={coverImage}
               alt={title}
               className={styles.image}
               lazy={true}

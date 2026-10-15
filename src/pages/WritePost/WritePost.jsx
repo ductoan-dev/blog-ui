@@ -14,7 +14,11 @@ import mediaService from "../../services/mediaService";
 import resolveMediaUrl from "../../utils/resolveMediaUrl";
 
 const WORDS_PER_MINUTE = 200;
-const VIDEO_MAX_SIZE_MB = 100; // khớp giới hạn ở blog-api/src/middlewares/upload.js
+// Khớp giới hạn ở blog-api/src/middlewares/upload.js
+const MEDIA_LIMITS = {
+  image: { maxSizeMb: 10, label: "Image" },
+  video: { maxSizeMb: 100, label: "Video" },
+};
 
 const stripHtml = (html) => html.replace(/<[^>]*>/g, " ");
 
@@ -54,7 +58,8 @@ const WritePost = () => {
   const [topicInput, setTopicInput] = useState("");
   const [showPublishModal, setShowPublishModal] = useState(false);
   const [topics, setTopics] = useState([]);
-  const [videoProgress, setVideoProgress] = useState(null); // null = không upload
+  // { kind, percent } while an image/video uploads, null otherwise
+  const [mediaUpload, setMediaUpload] = useState(null);
 
   const titleRef = useRef(null);
   const descriptionRef = useRef(null);
@@ -192,7 +197,7 @@ const WritePost = () => {
 
   const submitPost = async (data, status) => {
     // Ctrl+S also lands here, so block saving mid-upload
-    if (saving || videoProgress !== null || !validateForm()) return;
+    if (saving || mediaUpload !== null || !validateForm()) return;
     setSaving(true);
     try {
       await postService.create(buildFormData(data, status));
@@ -246,35 +251,39 @@ const WritePost = () => {
   };
 
   // Returns the video URL for the editor to embed, or null on failure
-  const handleUploadVideo = async (file) => {
+  // Returns the uploaded file's URL for the editor to embed, or null on failure
+  const handleUploadMedia = async (kind, file) => {
+    const { maxSizeMb, label } = MEDIA_LIMITS[kind];
     const showError = (message) => {
       setErrors((prev) => ({ ...prev, submit: message }));
       return null;
     };
 
-    if (!file.type.startsWith("video/")) {
-      return showError("Please choose a video file");
+    if (!file.type.startsWith(`${kind}/`)) {
+      return showError(`Please choose a ${kind} file`);
     }
-    if (file.size > VIDEO_MAX_SIZE_MB * 1024 * 1024) {
-      return showError(`Video must be ${VIDEO_MAX_SIZE_MB}MB or smaller`);
+    if (file.size > maxSizeMb * 1024 * 1024) {
+      return showError(`${label} must be ${maxSizeMb}MB or smaller`);
     }
 
     setErrors((prev) => ({ ...prev, submit: "" }));
-    setVideoProgress(0);
+    setMediaUpload({ kind, percent: 0 });
     try {
-      const { path } = await mediaService.uploadVideo(file, setVideoProgress);
+      const { path } = await mediaService.uploadMedia(kind, file, (percent) =>
+        setMediaUpload({ kind, percent })
+      );
       // Local: path in uploads/; production: full Vercel Blob URL
       return resolveMediaUrl(path);
     } catch (error) {
       return showError(
-        typeof error === "string" ? error : "Could not upload video"
+        typeof error === "string" ? error : `Could not upload ${kind}`
       );
     } finally {
-      setVideoProgress(null);
+      setMediaUpload(null);
     }
   };
 
-  const isUploading = videoProgress !== null;
+  const isUploading = mediaUpload !== null;
 
   const viewModes = [
     { label: "Write", value: false },
@@ -294,7 +303,7 @@ const WritePost = () => {
             </span>
             {isUploading ? (
               <span className={styles.uploading} role="status">
-                Uploading video {videoProgress}%
+                Uploading {mediaUpload.kind} {mediaUpload.percent}%
               </span>
             ) : (
               isDirty && <span className={styles.unsaved}>Unsaved changes</span>
@@ -393,7 +402,7 @@ const WritePost = () => {
               ref={editorRef}
               value={formData.content}
               onChange={(value) => updateField("content", value)}
-              onUploadVideo={handleUploadVideo}
+              onUploadMedia={handleUploadMedia}
               placeholder="Tell your story..."
               error={errors.content}
               className={styles.richTextEditor}

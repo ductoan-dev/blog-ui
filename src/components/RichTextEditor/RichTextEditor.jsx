@@ -21,23 +21,30 @@ const RichTextEditor = forwardRef(
             theme = "snow",
             modules: customModules = NO_CUSTOM_MODULES,
             formats: customFormats = NO_CUSTOM_FORMATS,
-            onUploadVideo,
+            onUploadMedia,
             ...props
         },
         ref
     ) => {
-        // Keep the toolbar handler stable: a new function on every render
+        // Keep the toolbar handlers stable: a new function on every render
         // would make ReactQuill rebuild the editor and lose focus
-        const uploadVideoRef = useRef(onUploadVideo);
-        uploadVideoRef.current = onUploadVideo;
-        const canUploadVideo = Boolean(onUploadVideo);
+        const uploadMediaRef = useRef(onUploadMedia);
+        uploadMediaRef.current = onUploadMedia;
+        const canUploadMedia = Boolean(onUploadMedia);
 
         // Default toolbar configuration
         const modules = useMemo(
             () => ({
                 toolbar: {
-                    handlers: canUploadVideo
-                        ? { uploadVideo: handleUploadVideo(uploadVideoRef) }
+                    // Upload images/videos to the server instead of inlining base64
+                    handlers: canUploadMedia
+                        ? {
+                              image: createUploadHandler("image", uploadMediaRef),
+                              uploadVideo: createUploadHandler(
+                                  "uploadVideo",
+                                  uploadMediaRef
+                              ),
+                          }
                         : {},
                     container: [
                         [{ header: [1, 2, 3, false] }],
@@ -50,7 +57,7 @@ const RichTextEditor = forwardRef(
                             "link",
                             "image",
                             "video",
-                            ...(canUploadVideo ? ["uploadVideo"] : []),
+                            ...(canUploadMedia ? ["uploadVideo"] : []),
                         ],
                         [{ align: [] }],
                         ["clean"],
@@ -61,7 +68,7 @@ const RichTextEditor = forwardRef(
                 },
                 ...customModules,
             }),
-            [customModules, canUploadVideo]
+            [customModules, canUploadMedia]
         );
 
         // Default formats
@@ -111,23 +118,32 @@ const RichTextEditor = forwardRef(
     }
 );
 
-// Opens a file picker, uploads via onUploadVideo and embeds the returned URL
-function handleUploadVideo(uploadVideoRef) {
+// Quill embed format -> media kind passed to onUploadMedia
+const UPLOAD_KINDS = {
+    image: { kind: "image", accept: "image/*" },
+    uploadVideo: { kind: "video", accept: "video/*" },
+};
+
+// Opens a file picker, uploads via onUploadMedia(kind, file) and embeds the
+// returned URL at the cursor
+function createUploadHandler(format, uploadMediaRef) {
+    const { kind, accept } = UPLOAD_KINDS[format];
+
     return function () {
         const quill = this.quill;
         const input = document.createElement("input");
         input.type = "file";
-        input.accept = "video/*";
+        input.accept = accept;
 
         input.onchange = async () => {
             const file = input.files?.[0];
             if (!file) return;
 
             const range = quill.getSelection(true);
-            const url = await uploadVideoRef.current?.(file);
+            const url = await uploadMediaRef.current?.(kind, file);
             if (!url) return;
 
-            quill.insertEmbed(range.index, "uploadVideo", url, "user");
+            quill.insertEmbed(range.index, format, url, "user");
             quill.setSelection(range.index + 1, 0, "silent");
         };
 
@@ -147,7 +163,7 @@ RichTextEditor.propTypes = {
     theme: PropTypes.oneOf(["snow", "bubble"]),
     modules: PropTypes.object,
     formats: PropTypes.array,
-    onUploadVideo: PropTypes.func,
+    onUploadMedia: PropTypes.func,
 };
 
 export default RichTextEditor;
