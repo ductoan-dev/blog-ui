@@ -106,14 +106,18 @@ const Register = () => {
 
       navigate("/login", {
         replace: true,
-        state: { message: "Registration successful! Please sign in." },
+        state: {
+          message:
+            "Đăng ký thành công! Kiểm tra email (cả mục Spam) và bấm link xác thực trước khi đăng nhập.",
+        },
       });
     } catch (error) {
+      // httpRequest throws the server message as a string
       setErrors({
         submit:
-          error?.response?.data?.message ||
-          error?.message ||
-          "Registration failed. Please try again.",
+          typeof error === "string" && error
+            ? error
+            : "Registration failed. Please try again.",
       });
     } finally {
       setIsSubmitting(false);

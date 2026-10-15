@@ -140,10 +140,12 @@ const Login = () => {
         </p>
       </div>
 
-      {/* Coming from the email verification link */}
-      {location.state?.verified && (
+      {/* Coming from the verification link or a successful sign-up */}
+      {(location.state?.verified || location.state?.message) && (
         <div className={styles.notice} role="status">
-          Email đã được xác thực. Đăng nhập để tiếp tục.
+          {location.state.verified
+            ? "Email đã được xác thực. Đăng nhập để tiếp tục."
+            : location.state.message}
         </div>
       )}
 
